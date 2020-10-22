@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "lib": [
+          "es2019"
+        ],
+        "module": "commonjs",
+        "target": "es2019",
+        "strict": true,
+        "sourceMap": true,
+        "noEmit": true
+    },
+    "include": [
+        "src",
+        "test",
+        "scripts"
+    ]
+}

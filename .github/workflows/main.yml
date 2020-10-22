@@ -1,0 +1,27 @@
+name: CI
+on:
+  push: {}
+  pull_request: {}
+
+jobs:
+  run:
+    if: github.event_name == 'push' || github.event.pull_request.base.repo.url != github.event.pull_request.head.repo.url
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: clkao/postgres-plv8:12-2
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5434:5432
+    steps:
+      - uses: actions/checkout@v2
+      - run: yarn
+      - run: yarn ci

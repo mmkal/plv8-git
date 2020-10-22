@@ -1,0 +1,10 @@
+*/*
+.*
+!.*rc.js
+!.*ignore
+!.git*
+!.github/**
+!src/**
+!test/**
+!scripts/**
+!patches/**
