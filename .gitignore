@@ -1,5 +1,6 @@
 */*
 .*
+*.tgz
 !.*rc.js
 !.*ignore
 !.git*

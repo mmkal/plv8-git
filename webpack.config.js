@@ -40,6 +40,14 @@ module.exports = {
           },
         ],
       },
+      {
+        test: /async-lock/,
+        use: [
+          {
+            loader: require.resolve('./scripts/async-lock-shim'),
+          },
+        ],
+      },
     ],
   },
   resolve: {

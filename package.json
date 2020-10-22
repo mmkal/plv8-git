@@ -8,10 +8,11 @@
   "scripts": {
     "build": "yarn webpack && yarn generate",
     "ci": "yarn lint && yarn test",
-    "generate": "scripts/generate-queries",
+    "generate": "yarn tsn scripts/generate-queries",
     "lint": "eslint .",
     "prepare": "patch-package",
     "test": "jest",
+    "tsn": "ts-node --transpile-only",
     "webpack": "webpack"
   },
   "devDependencies": {
@@ -30,6 +31,7 @@
     "slonik": "23.0.1",
     "ts-jest": "26.4.1",
     "ts-loader": "8.0.6",
+    "ts-node": "^9.0.0",
     "typescript": "4.0.3",
     "webpack": "4.44.2",
     "webpack-cli": "3.3.12"
