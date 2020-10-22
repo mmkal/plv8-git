@@ -8,7 +8,7 @@
   "scripts": {
     "build": "yarn webpack && yarn generate",
     "ci": "yarn build && yarn test && yarn lint",
-    "eslint": "eslint",
+    "eslint": "eslint --max-warnings 0",
     "generate": "yarn tsn scripts/generate-queries",
     "lint": "yarn eslint . && tsc -p .",
     "prepare": "patch-package",

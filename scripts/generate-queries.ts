@@ -5,8 +5,8 @@ import * as path from 'path'
 export const getFunctionBody = (js: string) => {
   return `
     var module = {}; // fake module; webpack does 'module.exports.blah = ...'
-    Object.assign(Promise, module.exports.SyncPromise)
     ${js}; // <-- bundled code
+    Object.assign(Promise, module.exports.SyncPromise)
   `
 }
 

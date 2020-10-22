@@ -21,6 +21,9 @@ Note: for `create extension plv8` to work the plv8.control file must exist on yo
 
 This will have created two postgres functions: `git_track` and `git_log`.
 
+<!-- codegen:start {preset: custom, source: scripts/docs.js} -->
+walkthrough:
+
 `git_track` is a trigger function that can be added to any table, with a `json` column, default-named `git_repo`:
 
 ```sql
@@ -64,7 +67,7 @@ This query will return:
       {
         "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
         "author": "pguser (pguser@pg.com)",
-        "time": "Thu Oct 22 2020 18:55:32 GMT+0000 (UTC)",
+        "time": "2020-10-23T12:00:00.000Z",
         "changes": [
           {
             "field": "text",
@@ -76,7 +79,7 @@ This query will return:
       {
         "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
         "author": "pguser (pguser@pg.com)",
-        "time": "Thu Oct 22 2020 18:55:25 GMT+0000 (UTC)",
+        "time": "2020-10-23T12:01:00.000Z",
         "changes": [
           {
             "field": "id",
@@ -101,13 +104,23 @@ To use existing git clients to get rich visual diffs, etc., you can simply pull 
 select git_repo from test_table where id = 1
 ```
 
+```json
+[
+  {
+    "git_repo": "[git repo]"
+  }
+]
+```
+
+This will return a json-formatted object, with keys corresponding to file system paths, and byte-array values as contents. Write them to disk using the helper function provided:
+
 This will return a json-formatted object, with keys corresponding to file system paths, and byte-array values as contents. Write them to disk using the helper function provided:
 
 ```bash
 node_modules/.bin/plv8-git \
   --write \
   --input $(psql -h localhost -U postgres postgres -c "select git_repo from test_table where id = 1") \
-  --output /path/to/git/dir 
+  --output /path/to/git/dir
 ```
 
 `/path/to/git/dir` will now be a valid git repository, with one file corresponding to each column in `test_table`.
@@ -142,6 +155,11 @@ create trigger v8_test_track_deletion_trigger
   execute procedure v8_test_track_deletion();
 ```
 
+```sql
+delete from test_table
+where id = 1
+```
+
 The `deleted_history` table can be queried in a similar way:
 
 ```sql
@@ -160,8 +178,8 @@ This will return something like:
     "identifier": {
       "id": 1
     },
-    "deleted_at": "2020-10-22T19:15:03.752Z",
-    "git_repo": {...}
+    "deleted_at": "2020-10-23T12:02:00.000Z",
+    "git_repo": "[git repo]"
   }
 ]
 ```
@@ -179,9 +197,21 @@ where identifier->>'id' = '1'
   {
     "git_log": [
       {
+        "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
+        "author": "pguser (pguser@pg.com)",
+        "time": "2020-10-23T12:03:00.000Z",
+        "changes": [
+          {
+            "field": "text",
+            "new": "updated content",
+            "old": "initial content"
+          }
+        ]
+      },
+      {
         "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
         "author": "pguser (pguser@pg.com)",
-        "time": "Thu Oct 22 2020 19:11:58 GMT+0000 (UTC)",
+        "time": "2020-10-23T12:04:00.000Z",
         "changes": [
           {
             "field": "id",
@@ -189,7 +219,7 @@ where identifier->>'id' = '1'
           },
           {
             "field": "text",
-            "new": "foo"
+            "new": "initial content"
           }
         ]
       }
@@ -199,3 +229,4 @@ where identifier->>'id' = '1'
 ```
 
 In this example, `delete_history` is generic enough that it could be the "history" table for several other relations, since it uses columns `schemaname` and `tablename`, and `identifier` as the flexible `JSONB` data type to allow for different types of primary key. This avoids the overhead of needing a new `_history` table for every relation created - all the data, including history, is captured in the `git_repo` column. The `identifier` column is only used for lookups.
+<!-- codegen:end -->

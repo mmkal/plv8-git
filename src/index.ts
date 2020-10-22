@@ -1,5 +1,7 @@
 import * as git from './git'
 
+export {SyncPromise} from './sync-promise'
+
 /**
  * Turn a promise-returning function into a synchronous one. Only works if the function uses
  * `SyncPromise` under the hood.
