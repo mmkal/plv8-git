@@ -17,7 +17,6 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        // use require.resolve so this config can be used from other packages
         use: [{loader: 'ts-loader', options: {transpileOnly: true}}],
         exclude: /node_modules/,
       },
