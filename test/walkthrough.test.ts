@@ -317,4 +317,89 @@ test('walkthrough', async () => {
   `)
 
   // In this example, `delete_history` is generic enough that it could be the "history" table for several other relations, since it uses columns `schemaname` and `tablename`, and `identifier` as the flexible `JSONB` data type to allow for different types of primary key. This avoids the overhead of needing a new `_history` table for every relation created - all the data, including history, is captured in the `git` column. The `identifier` column is only used for lookups.
+
+  // ### Configuraton
+
+  // You can pass a custom commit message and author by pre-loading the `git` property with `commit` details, which can include a commit message and user info:
+
+  await client.query(sql`
+    insert into test_table(
+      id,
+      text,
+      git
+    )
+    values(
+      2,
+      'a value',
+      '{ "commit": { "message": "some custom message", "author": { "name": "Alice", "email": "alice@gmail.com" } } }'
+    )
+  `)
+
+  result = await client.many(sql`
+    select git_log(git)
+    from test_table
+    where id = 2
+  `)
+
+  expect(result).toMatchInlineSnapshot(`
+    [
+      {
+        "git_log": [
+          {
+            "message": "some custom message\\n\\ntest_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+            "author": "Alice (alice@gmail.com)",
+            "timestamp": "2020-10-23T12:00:00.000Z",
+            "changes": [
+              {
+                "field": "id",
+                "new": 2
+              },
+              {
+                "field": "text",
+                "new": "a value"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  `)
+
+  // `git_log` also accepts a `depth` parameter to limit the amount of history that is fetched:
+
+  await client.query(sql`
+    update test_table
+    set text = 'a new value',
+        git = '{ "commit": { "message": "Changed because the previous value was out-of-date"  } }'
+    where id = 2
+  `)
+
+  result = await client.many(sql`
+    select git_log(git, depth := 1)
+    from test_table
+    where id = 2
+  `)
+
+  expect(result).toMatchInlineSnapshot(`
+    [
+      {
+        "git_log": [
+          {
+            "message": "Changed because the previous value was out-of-date\\n\\ntest_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
+            "author": "pguser (pguser@pg.com)",
+            "timestamp": "2020-10-23T12:00:00.000Z",
+            "changes": [
+              {
+                "field": "text",
+                "new": "a new value",
+                "old": "a value"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  `)
+
+  // By setting `depth := 1`, only the most recent change is returned.
 })
