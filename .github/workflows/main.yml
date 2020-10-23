@@ -20,7 +20,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5434:5432
+          - 5435:5432
     steps:
       - uses: actions/checkout@v2
       - run: yarn
