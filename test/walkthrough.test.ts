@@ -88,6 +88,8 @@ expect.addSnapshotSerializer({
 })
 
 test('walkthrough', async () => {
+  // ### Tracking history
+
   // `git_track` is a trigger function that can be added to any table, with a `json` column, default-named `git`:
 
   await client.query(sql`

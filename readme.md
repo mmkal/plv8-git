@@ -4,6 +4,14 @@ An experimental helper which tracks the modification history of rows in postgres
 
 The implementation uses [plv8](https://github.com/plv8/plv8) to run JavaScript in postgres, with [isomorphic-git](https://npmjs.com/package/isomorphic-git) and [memfs](https://npmjs.com/package) to perform git operations in-memory.
 
+<!-- codegen:start {preset: markdownTOC, minDepth: 2} -->
+- [Usage](#usage)
+   - [Tracking history](#tracking-history)
+   - [Deletions](#deletions)
+   - [Configuraton](#configuraton)
+- [Caveat](#caveat)
+<!-- codegen:end -->
+
 ## Usage
 
 The easiest way to get started is to use the pre-baked sql files exported with the package:
@@ -22,6 +30,8 @@ Note: for `create extension plv8` to work the plv8.control file must exist on yo
 This will have created two postgres functions: `git_track` and `git_log`.
 
 <!-- codegen:start {preset: custom, source: scripts/docs.js} -->
+### Tracking history
+
 `git_track` is a trigger function that can be added to any table, with a `json` column, default-named `git`:
 
 ```sql
