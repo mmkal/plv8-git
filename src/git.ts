@@ -98,7 +98,7 @@ export const gitLog = (gitRepoJson: object, depth?: number) => {
             .then((results: WalkResult[]) => ({
               message: e.commit.message.trim(),
               author: `${e.commit.author.name} (${e.commit.author.email})`,
-              time: new Date(e.commit.author.timestamp * 1000).toString(),
+              timestamp: new Date(e.commit.author.timestamp * 1000).toISOString(),
               changes: results
                 .filter(
                   r => r.ChildInfo?.type === 'blob' && r.filepath !== '.' && r.ChildInfo.oid !== r.ParentInfo?.oid,

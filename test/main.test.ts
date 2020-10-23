@@ -6,13 +6,15 @@ const connectionString = `postgresql://postgres:postgres@localhost:5435/postgres
 
 const client = createPool(connectionString, {
   idleTimeout: 1,
-  typeParsers: [{name: 'timestamptz', parse: () => getNextDate().toISOString()}],
+  typeParsers: [{name: 'timestamptz', parse: v => getNextDate(v).toISOString()}],
 })
 
 // stupid way of getting stable date results
-const BASE_DATE = new Date('2020-10-23T12:00Z')
-let fakeDateCount = 0
-const getNextDate = () => new Date(BASE_DATE.getTime() + 60000 * fakeDateCount++)
+const start = new Date()
+const getNextDate = (s: string) => {
+  const real = new Date(s)
+  return real.getTime() - start.getTime() < 5000 ? new Date('2020-10-23T12:00Z') : real
+}
 
 beforeAll(async () => {
   // todo: use a different schema than public, then just drop and recreate the whole schema
@@ -62,8 +64,8 @@ const readableJson = (o: unknown) => {
     if (isGitRepoJson(k, v)) {
       return '[git repo]'
     }
-    if (k === 'time' && typeof v === 'string') {
-      return getNextDate().toISOString()
+    if (k === 'timestamp' && typeof v === 'string') {
+      return getNextDate(v).toISOString()
     }
     return v
   }
@@ -125,7 +127,7 @@ test('walkthrough', async () => {
           {
             "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
             "author": "pguser (pguser@pg.com)",
-            "time": "2020-10-23T12:00:00.000Z",
+            "timestamp": "2020-10-23T12:00:00.000Z",
             "changes": [
               {
                 "field": "text",
@@ -137,7 +139,7 @@ test('walkthrough', async () => {
           {
             "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
             "author": "pguser (pguser@pg.com)",
-            "time": "2020-10-23T12:01:00.000Z",
+            "timestamp": "2020-10-23T12:00:00.000Z",
             "changes": [
               {
                 "field": "id",
@@ -236,7 +238,7 @@ test('walkthrough', async () => {
         "identifier": {
           "id": 1
         },
-        "deleted_at": "2020-10-23T12:02:00.000Z",
+        "deleted_at": "2020-10-23T12:00:00.000Z",
         "git_repo": "[git repo]"
       }
     ]
@@ -257,7 +259,7 @@ test('walkthrough', async () => {
           {
             "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
             "author": "pguser (pguser@pg.com)",
-            "time": "2020-10-23T12:03:00.000Z",
+            "timestamp": "2020-10-23T12:00:00.000Z",
             "changes": [
               {
                 "field": "text",
@@ -269,7 +271,7 @@ test('walkthrough', async () => {
           {
             "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
             "author": "pguser (pguser@pg.com)",
-            "time": "2020-10-23T12:04:00.000Z",
+            "timestamp": "2020-10-23T12:00:00.000Z",
             "changes": [
               {
                 "field": "id",
