@@ -10,7 +10,7 @@ export const getFunctionBody = (js: string) => {
   `
 }
 
-export const query = (js: string) => {
+export const getQuery = (js: string) => {
   const hash = crypto.createHash('sha256').update(js).digest('hex')
   const quotes = `$_${hash}$`
   if (js.includes(quotes)) {
@@ -55,7 +55,7 @@ export const query = (js: string) => {
 }
 
 export const write = (filesystem = fs) => {
-  const sql = query(filesystem.readFileSync(require.resolve('..')).toString())
+  const sql = getQuery(filesystem.readFileSync(require.resolve('..')).toString())
   const destPath = path.join(__dirname, '../queries/create-git-functions.sql')
   filesystem.mkdirSync(path.dirname(destPath), {recursive: true})
   filesystem.writeFileSync(destPath, sql, 'utf8')

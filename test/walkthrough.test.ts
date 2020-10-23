@@ -193,18 +193,14 @@ test('walkthrough', async () => {
     ]
   `)
 
-  // This will return a json-formatted object, with keys corresponding to file system paths, and byte-array values as contents. Write them to disk using the helper function provided:
-
-  // This will return a json-formatted object, with keys corresponding to file system paths, and byte-array values as contents. Write them to disk using the helper function provided:
+  // This will return a json-formatted object, with keys corresponding to file system paths, and byte-array values as contents. Write them to disk using the CLI tool provided with this package:
 
   // ```bash
-  // node_modules/.bin/plv8-git \
-  //   --write \
-  //   --input $(psql -h localhost -U postgres postgres -c "select git from test_table where id = 1") \
-  //   --output /path/to/git/dir
+  // GIT=$(psql -c "select git from test_table where id = 1")
+  // node_modules/.bin/plv8-git write --input "$GIT" --output path/to/git/dir
   // ```
 
-  // `/path/to/git/dir` will now be a valid git repository, with one file corresponding to each column in `test_table`. You can `cd` into it, and run commands like `git log`, or use your favourite git UI to inspect the history in as much detail as you'd like.
+  // `path/to/git/dir` will now be a valid git repository, with one file corresponding to each column in `test_table`. You can `cd` into it, and run commands like `git log`, or use your favourite git UI to inspect the history in as much detail as you'd like.
 
   // ### Deletions
 
@@ -236,12 +232,14 @@ test('walkthrough', async () => {
       execute procedure test_table_track_deletion();
   `)
 
+  // You can now perform deletions as normal and they'll be automatically tracked in `deleted_history`:
+
   await client.query(sql`
     delete from test_table
     where id = 1
   `)
 
-  // The `deleted_history` table can be queried in a similar way:
+  // The `deleted_history` table can be queried in the same was as the other tables:
 
   result = await client.any(sql`
     select *
@@ -321,7 +319,7 @@ test('walkthrough', async () => {
     ]
   `)
 
-  // In this example, `delete_history` is generic enough that it could be the "history" table for several other relations, since it uses columns `schemaname` and `tablename`, and `identifier` as the flexible `JSONB` data type to allow for different types of primary key. This avoids the overhead of needing a new `_history` table for every relation created - all the data, including history, is captured in the `git` column. The `identifier` column is only used for lookups.
+  // In this example, `deleted_history` is generic enough that it could be the "history" table for several other relations, since it uses columns `schemaname` and `tablename`, and `identifier` as the flexible `JSONB` data type to allow for different types of primary key. This avoids the overhead of needing a new `_history` table for every relation created - all the data, including history, is captured in the `git` column. The `identifier` column is only used for lookups.
 
   // ### Configuraton
 

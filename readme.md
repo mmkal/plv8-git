@@ -16,21 +16,22 @@ The implementation uses [plv8](https://github.com/plv8/plv8) to run JavaScript i
 
 ## Motivation
 
-To quote @murat twitter thread:
+To paraphrase [@mayfer's twitter thread](https://twitter.com/mayfer/status/1308606131426582528):
 
->never have to worry about building edit/delete/undo/backup/recover type features, one generic git-backed [column] is enough
+- never have to worry about building edit/delete/undo/backup/recover type features, one generic git-backed [column] is enough
 
->removes the need to keep additional SQL tables which keep logs of all edit histories.
+- removes the need to keep additional SQL tables which keep logs of all edit histories.
 
->makes event sourcing a lot more modular. instead of tons of tables storing custom events, every SQL update on a column also updates its git bundle, saved into a separate binary column
+- makes event sourcing a lot more modular. instead of tons of tables storing custom events, every SQL update on a column also updates its git bundle, saved into a separate binary column
 
->with just 1 extra column, you can add multiuser versioning to *any* indexed column!
+- with just 1 extra column, you 
+can add multiuser versioning to *any* indexed column!
 
->how cool this will be for large JSON or other text blob columns that get overwritten a lot during the app's lifetime
+- how cool this will be for large JSON or other text blob columns that get overwritten a lot during the app's lifetime
 
->since all commits are controlled by the main app, it's trivial to integrate commit authors directly into any regular application's user auth system
+- since all commits are controlled by the main app, it's trivial to integrate commit authors directly into any regular application's user auth system
 
->due to the git standard, this repo then can easily be fed into any generic git UI for all sorts of diffing, logging & visualizing
+- due to the git standard, this repo then can easily be fed into any generic git UI for all sorts of diffing, logging & visualizing
 
 ## Usage
 
@@ -153,18 +154,14 @@ select git from test_table where id = 1
 ]
 ```
 
-This will return a json-formatted object, with keys corresponding to file system paths, and byte-array values as contents. Write them to disk using the helper function provided:
-
-This will return a json-formatted object, with keys corresponding to file system paths, and byte-array values as contents. Write them to disk using the helper function provided:
+This will return a json-formatted object, with keys corresponding to file system paths, and byte-array values as contents. Write them to disk using the CLI tool provided with this package:
 
 ```bash
-node_modules/.bin/plv8-git \
-  --write \
-  --input $(psql -h localhost -U postgres postgres -c "select git from test_table where id = 1") \
-  --output /path/to/git/dir
+GIT=$(psql -c "select git from test_table where id = 1")
+node_modules/.bin/plv8-git write --input "$GIT" --output path/to/git/dir
 ```
 
-`/path/to/git/dir` will now be a valid git repository, with one file corresponding to each column in `test_table`. You can `cd` into it, and run commands like `git log`, or use your favourite git UI to inspect the history in as much detail as you'd like.
+`path/to/git/dir` will now be a valid git repository, with one file corresponding to each column in `test_table`. You can `cd` into it, and run commands like `git log`, or use your favourite git UI to inspect the history in as much detail as you'd like.
 
 ### Deletions
 
@@ -196,12 +193,14 @@ create trigger test_table_track_deletion_trigger
   execute procedure test_table_track_deletion();
 ```
 
+You can now perform deletions as normal and they'll be automatically tracked in `deleted_history`:
+
 ```sql
 delete from test_table
 where id = 1
 ```
 
-The `deleted_history` table can be queried in a similar way:
+The `deleted_history` table can be queried in the same was as the other tables:
 
 ```sql
 select *
@@ -281,7 +280,7 @@ where identifier->>'id' = '1'
 ]
 ```
 
-In this example, `delete_history` is generic enough that it could be the "history" table for several other relations, since it uses columns `schemaname` and `tablename`, and `identifier` as the flexible `JSONB` data type to allow for different types of primary key. This avoids the overhead of needing a new `_history` table for every relation created - all the data, including history, is captured in the `git` column. The `identifier` column is only used for lookups.
+In this example, `deleted_history` is generic enough that it could be the "history" table for several other relations, since it uses columns `schemaname` and `tablename`, and `identifier` as the flexible `JSONB` data type to allow for different types of primary key. This avoids the overhead of needing a new `_history` table for every relation created - all the data, including history, is captured in the `git` column. The `identifier` column is only used for lookups.
 
 ### Configuraton
 
@@ -378,12 +377,12 @@ By setting `depth := 1`, only the most recent change is returned.
 
 ## Implementation
 
-At it's core, this library bundles [isomorphic-git](https://npmjs.com/package/isomorphic-git) and [memfs](https://npmjs.com/package/memfs) to produce an entirely in-memory, synchronous git implementation which can run inside postgres's plv8 engine. A few modifications are needed to each, though:
+At its core, this library bundles [isomorphic-git](https://npmjs.com/package/isomorphic-git) and [memfs](https://npmjs.com/package/memfs) to produce an entirely in-memory, synchronous git implementation which can run inside postgres's plv8 engine. A few modifications are applied to each:
 
-Since plv8 triggers need to return values synchronously, but isomorphic-git uses promises extensively, a shime of the global `Promise` object was created called [`SyncPromise`](./src/sync-promise.ts). This has the same API as `Promise`, but its callbacks are executed immediately.
+Since plv8 triggers need to return values synchronously, but isomorphic-git uses promises extensively, a shim of the global `Promise` object was created called [`SyncPromise`](./src/sync-promise.ts). This has the same API as `Promise`, but its callbacks are executed immediately.
 
-To avoid the event-loop, all async-await code in isomorphic-git is transformed to `.then`, `.catch` etc. by [babel-plugin-transform-async-to-promises](https://npmjs.com/package/babel-plugin-transform-async-to-promises). `async-lock`, which is a dependency of isomorphic-git, is also [shimmed](./scripts/async-lock-shim.js) to bypass any locking - it's not necessary anyway, since all git operations take place on an ephemeral, in-memory, synchronous filesystem.
+To avoid the event-loop, all async-await code in isomorphic-git is transformed to `.then`, `.catch` etc. by [babel-plugin-transform-async-to-promises](https://npmjs.com/package/babel-plugin-transform-async-to-promises). `async-lock`, which is a dependency of isomorphic-git, is also [shimmed](./scripts/async-lock-shim.js) to bypass its locking mechanism which relies on timers - it's not necessary anyway, since all git operations take place on an ephemeral, in-memory, synchronous filesystem.
 
-`memfs` is _also_ shimmed before being passed to isomorphic-git to [replace its promise-based operations with sync ones](./src/fs.ts).
+`memfs` is also shimmed before being passed to isomorphic-git to [replace its promise-based operations with sync ones](./src/fs.ts).
 
-These libraries are bundled with webpack into a standalone module with no dependencies. The source code for this bundle is copied into a sql file by [generate-queries](./scripts/generate-queries.ts), so that it can be used to define a postgres function with plv8.
+These libraries are bundled using webpack into a standalone module with no dependencies. The source code for this bundle is copied into a sql file by [generate-queries](./scripts/generate-queries.ts), so that it can be used to define a postgres function with plv8.
