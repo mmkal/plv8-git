@@ -5,12 +5,31 @@ An experimental helper which tracks the modification history of rows in postgres
 The implementation uses [plv8](https://github.com/plv8/plv8) to run JavaScript in postgres, with [isomorphic-git](https://npmjs.com/package/isomorphic-git) and [memfs](https://npmjs.com/package) to perform git operations in-memory.
 
 <!-- codegen:start {preset: markdownTOC, minDepth: 2} -->
+- [Motivation](#motivation)
 - [Usage](#usage)
    - [Tracking history](#tracking-history)
    - [Deletions](#deletions)
    - [Configuraton](#configuraton)
 - [Caveat](#caveat)
 <!-- codegen:end -->
+
+## Motivation
+
+To quote @murat twitter thread:
+
+>never have to worry about building edit/delete/undo/backup/recover type features, one generic git-backed CRUD API is enough
+
+>removes the need to keep additional SQL tables which keep logs of all edit histories.
+
+>makes event sourcing a lot more modular. instead of tons of tables storing custom events, every SQL update on a column also updates its git bundle, saved into a separate binary column
+
+>with just 1 extra column, you can add multiuser versioning to *any* indexed column!
+
+>how cool this will be for large JSON or other text blob columns that get overwritten a lot during the app's lifetime
+
+>since all commits are controlled by the main app, it's trivial to integrate commit authors directly into any regular application's user auth system
+
+>due to the git standard, this repo then can easily be fed into any generic git UI for all sorts of diffing, logging & visualizing
 
 ## Usage
 
