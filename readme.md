@@ -22,8 +22,6 @@ Note: for `create extension plv8` to work the plv8.control file must exist on yo
 This will have created two postgres functions: `git_track` and `git_log`.
 
 <!-- codegen:start {preset: custom, source: scripts/docs.js} -->
-walkthrough:
-
 `git_track` is a trigger function that can be added to any table, with a `json` column, default-named `git_repo`:
 
 ```sql
