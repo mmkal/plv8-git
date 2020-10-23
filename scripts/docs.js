@@ -3,7 +3,7 @@ const fs = require('fs')
 
 /** @type {import('eslint-plugin-codegen').Preset<{}>} */
 module.exports = params => {
-  const testfile = path.join(path.dirname(params.meta.filename), 'test/main.test.ts')
+  const testfile = path.join(path.dirname(params.meta.filename), 'test/walkthrough.test.ts')
   const content = fs.readFileSync(testfile).toString()
   const lines = content.split('\n')
   const testName = 'walkthrough'
