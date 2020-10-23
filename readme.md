@@ -41,8 +41,9 @@ npm install plv8-git
 psql -h localhost -U postgres postgres -c "
   create extension if not exists plv8;
   select plv8_version();
-  $(cat node_modules/plv8-git/queries/create-git-functions.sql)
 "
+
+psql -h localhost -U postgres postgres -f node_modules/plv8-git/queries/create-git-functions.sql
 ```
 
 Note: for `create extension plv8` to work the plv8.control file must exist on your database system. You can use [the postgres-plv8 docker image](https://github.com/clkao/docker-postgres-plv8/tree/master/12-2) for development (or production, if you really want to deploy a containerised database to production). Amazon RDS instances [should have the extension available](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html).
