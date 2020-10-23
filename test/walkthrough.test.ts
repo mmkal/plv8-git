@@ -6,12 +6,12 @@ const connectionString = `postgresql://postgres:postgres@localhost:5435/postgres
 
 const client = createPool(connectionString, {
   idleTimeout: 1,
-  typeParsers: [{name: 'timestamptz', parse: v => getNextDate(v).toISOString()}],
+  typeParsers: [{name: 'timestamptz', parse: v => fuzzifyDate(v).toISOString()}],
 })
 
 // stupid way of getting stable date results
 const start = new Date()
-const getNextDate = (s: string) => {
+const fuzzifyDate = (s: string) => {
   const real = new Date(s)
   return real.getTime() - start.getTime() < 5000 ? new Date('2020-10-23T12:00Z') : real
 }
@@ -51,21 +51,25 @@ const readableJson = (o: unknown) => {
    * very advanced algorithm for determining if a key-value pair is worth pretty-printing. if not,
    * we're better off putting it on a single line so it doesn't take up too much space
    */
-  const isUnintelligible = (k: string, v: unknown) =>
-    Array.isArray(v) && v.length > 0 && v.every(x => typeof x === 'number')
+  const isByteArray = (k: string, v: unknown) => Array.isArray(v) && v.length > 0 && v.every(x => typeof x === 'number')
 
-  const isGitRepoJson = (k: string, v: unknown) => k === 'git'
+  const isGitRepoJson = (k: string, v: unknown): v is Record<string, string> =>
+    k === 'git' && v && typeof v === 'object'
 
   const markers: any = {}
-  const replacer = (k: string, v: unknown) => {
-    if (isUnintelligible(k, v)) {
-      return '[data]'
+  const replacer = (k: string, v: unknown): any => {
+    if (isByteArray(k, v)) {
+      return '[byte array]'
     }
     if (isGitRepoJson(k, v)) {
-      return '[git repo]'
+      const copy: typeof v = {}
+      Object.entries(v).forEach((e, i) => {
+        copy[e[0].replace(/\.git(\/\w+)+/, `.git/path/to/object${i}`)] = '[byte array]'
+      })
+      return copy
     }
     if (k === 'timestamp' && typeof v === 'string') {
-      return getNextDate(v).toISOString()
+      return fuzzifyDate(v).toISOString()
     }
     return v
   }
@@ -167,7 +171,19 @@ test('walkthrough', async () => {
   expect(result).toMatchInlineSnapshot(`
     [
       {
-        "git": "[git repo]"
+        "git": {
+          "/repo/.git/path/to/object0": "[byte array]",
+          "/repo/.git/path/to/object1": "[byte array]",
+          "/repo/.git/path/to/object2": "[byte array]",
+          "/repo/.git/path/to/object3": "[byte array]",
+          "/repo/.git/path/to/object4": "[byte array]",
+          "/repo/.git/path/to/object5": "[byte array]",
+          "/repo/.git/path/to/object6": "[byte array]",
+          "/repo/.git/path/to/object7": "[byte array]",
+          "/repo/.git/path/to/object8": "[byte array]",
+          "/repo/.git/path/to/object9": "[byte array]",
+          "/repo/.git/path/to/object10": "[byte array]"
+        }
       }
     ]
   `)
@@ -239,7 +255,19 @@ test('walkthrough', async () => {
           "id": 1
         },
         "deleted_at": "2020-10-23T12:00:00.000Z",
-        "git": "[git repo]"
+        "git": {
+          "/repo/.git/path/to/object0": "[byte array]",
+          "/repo/.git/path/to/object1": "[byte array]",
+          "/repo/.git/path/to/object2": "[byte array]",
+          "/repo/.git/path/to/object3": "[byte array]",
+          "/repo/.git/path/to/object4": "[byte array]",
+          "/repo/.git/path/to/object5": "[byte array]",
+          "/repo/.git/path/to/object6": "[byte array]",
+          "/repo/.git/path/to/object7": "[byte array]",
+          "/repo/.git/path/to/object8": "[byte array]",
+          "/repo/.git/path/to/object9": "[byte array]",
+          "/repo/.git/path/to/object10": "[byte array]"
+        }
       }
     ]
   `)

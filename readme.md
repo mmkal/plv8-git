@@ -61,7 +61,35 @@ This query will return:
 ```json
 [
   {
-    "git_log": null
+    "git_log": [
+      {
+        "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
+        "author": "pguser (pguser@pg.com)",
+        "timestamp": "2020-10-23T12:00:00.000Z",
+        "changes": [
+          {
+            "field": "text",
+            "new": "updated content",
+            "old": "initial content"
+          }
+        ]
+      },
+      {
+        "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+        "author": "pguser (pguser@pg.com)",
+        "timestamp": "2020-10-23T12:00:00.000Z",
+        "changes": [
+          {
+            "field": "id",
+            "new": 1
+          },
+          {
+            "field": "text",
+            "new": "initial content"
+          }
+        ]
+      }
+    ]
   }
 ]
 ```
@@ -77,7 +105,19 @@ select git from test_table where id = 1
 ```json
 [
   {
-    "git": "[git repo]"
+    "git": {
+      "/repo/.git/path/to/object0": "[byte array]",
+      "/repo/.git/path/to/object1": "[byte array]",
+      "/repo/.git/path/to/object2": "[byte array]",
+      "/repo/.git/path/to/object3": "[byte array]",
+      "/repo/.git/path/to/object4": "[byte array]",
+      "/repo/.git/path/to/object5": "[byte array]",
+      "/repo/.git/path/to/object6": "[byte array]",
+      "/repo/.git/path/to/object7": "[byte array]",
+      "/repo/.git/path/to/object8": "[byte array]",
+      "/repo/.git/path/to/object9": "[byte array]",
+      "/repo/.git/path/to/object10": "[byte array]"
+    }
   }
 ]
 ```
@@ -108,7 +148,7 @@ create table deleted_history(
   git json
 );
 
-create function v8_test_track_deletion() returns trigger as
+create function test_table_track_deletion() returns trigger as
 $$
   begin
     insert into deleted_history(schemaname, tablename, identifier, deleted_at, git)
@@ -119,10 +159,10 @@ $$
 $$
 language plpgsql;
 
-create trigger v8_test_track_deletion_trigger
+create trigger test_table_track_deletion_trigger
   before delete
   on test_table for each row
-  execute procedure v8_test_track_deletion();
+  execute procedure test_table_track_deletion();
 ```
 
 ```sql
@@ -149,7 +189,19 @@ This will return something like:
       "id": 1
     },
     "deleted_at": "2020-10-23T12:00:00.000Z",
-    "git": "[git repo]"
+    "git": {
+      "/repo/.git/path/to/object0": "[byte array]",
+      "/repo/.git/path/to/object1": "[byte array]",
+      "/repo/.git/path/to/object2": "[byte array]",
+      "/repo/.git/path/to/object3": "[byte array]",
+      "/repo/.git/path/to/object4": "[byte array]",
+      "/repo/.git/path/to/object5": "[byte array]",
+      "/repo/.git/path/to/object6": "[byte array]",
+      "/repo/.git/path/to/object7": "[byte array]",
+      "/repo/.git/path/to/object8": "[byte array]",
+      "/repo/.git/path/to/object9": "[byte array]",
+      "/repo/.git/path/to/object10": "[byte array]"
+    }
   }
 ]
 ```
@@ -165,7 +217,35 @@ where identifier->>'id' = '1'
 ```json
 [
   {
-    "git_log": null
+    "git_log": [
+      {
+        "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
+        "author": "pguser (pguser@pg.com)",
+        "timestamp": "2020-10-23T12:00:00.000Z",
+        "changes": [
+          {
+            "field": "text",
+            "new": "updated content",
+            "old": "initial content"
+          }
+        ]
+      },
+      {
+        "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+        "author": "pguser (pguser@pg.com)",
+        "timestamp": "2020-10-23T12:00:00.000Z",
+        "changes": [
+          {
+            "field": "id",
+            "new": 1
+          },
+          {
+            "field": "text",
+            "new": "initial content"
+          }
+        ]
+      }
+    ]
   }
 ]
 ```
