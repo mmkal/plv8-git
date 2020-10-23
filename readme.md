@@ -11,13 +11,14 @@ The implementation uses [plv8](https://github.com/plv8/plv8) to run JavaScript i
    - [Deletions](#deletions)
    - [Configuraton](#configuraton)
 - [Caveat](#caveat)
+- [Implementation](#implementation)
 <!-- codegen:end -->
 
 ## Motivation
 
 To quote @murat twitter thread:
 
->never have to worry about building edit/delete/undo/backup/recover type features, one generic git-backed CRUD API is enough
+>never have to worry about building edit/delete/undo/backup/recover type features, one generic git-backed [column] is enough
 
 >removes the need to keep additional SQL tables which keep logs of all edit histories.
 
@@ -369,4 +370,19 @@ By setting `depth := 1`, only the most recent change is returned.
 
 ## Caveat
 
-This library is experimental, and hasn't been pressure-tested. There may well be edge-cases where it falls down.
+- This library is experimental, and hasn't been pressure-tested. There may well be edge-cases where it falls down.
+- It hasn't been performance-tested yet. It works well for rows with small, easily-json-stringifiable data. Large, frequently updated rows may hit issues.
+- It currently uses the `JSON` data type to store a serialised copy of the `.git` repo folder. This can likely be optimised to use `BYTEA` or another data type.
+- It uses several tools that were _not_ built with each other in mind (although each is well-designed and flexible enough for them to play nice without too many problems). See the [implementation section](#implementation)
+
+## Implementation
+
+At it's core, this library bundles [isomorphic-git](https://npmjs.com/package/isomorphic-git) and [memfs](https://npmjs.com/package/memfs) to produce an entirely in-memory, synchronous git implementation which can run inside postgres's plv8 engine. A few modifications are needed to each, though:
+
+Since plv8 triggers need to return values synchronously, but isomorphic-git uses promises extensively, a shime of the global `Promise` object was created called [`SyncPromise`](./src/sync-promise.ts). This has the same API as `Promise`, but its callbacks are executed immediately.
+
+To avoid the event-loop, all async-await code in isomorphic-git is transformed to `.then`, `.catch` etc. by [babel-plugin-transform-async-to-promises](https://npmjs.com/package/babel-plugin-transform-async-to-promises). `async-lock`, which is a dependency of isomorphic-git, is also [shimmed](./scripts/async-lock-shim.js) to bypass any locking - it's not necessary anyway, since all git operations take place on an ephemeral, in-memory, synchronous filesystem.
+
+`memfs` is _also_ shimmed before being passed to isomorphic-git to [replace its promise-based operations with sync ones](./src/fs.ts).
+
+These libraries are bundled with webpack into a standalone module with no dependencies. The source code for this bundle is copied into a sql file by [generate-queries](./scripts/generate-queries.ts), so that it can be used to define a postgres function with plv8.

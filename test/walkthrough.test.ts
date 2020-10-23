@@ -2,6 +2,9 @@ import {createPool, sql} from 'slonik'
 import {readFileSync} from 'fs'
 import * as path from 'path'
 
+// NOTE! This file is used to auto-generate the readme.
+// Tests that shouldn't be part of the walkthrough documentaiton should go elsewhere.
+
 const connectionString = `postgresql://postgres:postgres@localhost:5435/postgres`
 
 const client = createPool(connectionString, {
