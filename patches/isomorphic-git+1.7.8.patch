@@ -1,8 +1,8 @@
 diff --git a/node_modules/isomorphic-git/index.cjs b/node_modules/isomorphic-git/index.cjs
-index ae4d526..9d9b046 100644
+index ae4d526..bceb0ff 100644
 --- a/node_modules/isomorphic-git/index.cjs
 +++ b/node_modules/isomorphic-git/index.cjs
-@@ -2935,38 +2935,66 @@ async function _readObject({
+@@ -2935,38 +2935,69 @@ async function _readObject({
      return result
    }
  
@@ -67,6 +67,9 @@ index ae4d526..9d9b046 100644
 +
 +  /* manually patching https://github.com/isomorphic-git/isomorphic-git/pull/1247 */
 +  /* note: this is commonjs export of this package, usually ignored in favour of index.js */
++  if (result.format === 'https://github.com/isomorphic-git/isomorphic-git/pull/1247') {
++    throw Error() // make sure the PR is in the runtime code so babel can't strip it away
++  }
 +  if (result.format === 'deflated') {
 +    result.object = Buffer.from(await inflate(result.object))
 +    result.format = 'wrapped'
@@ -98,7 +101,7 @@ index ae4d526..9d9b046 100644
  }
  
  class AlreadyExistsError extends BaseError {
-@@ -10337,7 +10365,8 @@ async function _log({ fs, cache, gitdir, ref, depth, since }) {
+@@ -10337,7 +10368,8 @@ async function _log({ fs, cache, gitdir, ref, depth, since }) {
    const oid = await GitRefManager.resolve({ fs, gitdir, ref });
    const tips = [await _readCommit({ fs, cache, gitdir, oid })];
  
@@ -109,10 +112,10 @@ index ae4d526..9d9b046 100644
  
      // Stop the log if we've hit the age limit
 diff --git a/node_modules/isomorphic-git/index.js b/node_modules/isomorphic-git/index.js
-index 8335d52..6a6ebd4 100644
+index 8335d52..a3b3231 100644
 --- a/node_modules/isomorphic-git/index.js
 +++ b/node_modules/isomorphic-git/index.js
-@@ -2929,38 +2929,66 @@ async function _readObject({
+@@ -2929,38 +2929,69 @@ async function _readObject({
      return result
    }
  
@@ -177,6 +180,9 @@ index 8335d52..6a6ebd4 100644
 +
 +  /* manually patching https://github.com/isomorphic-git/isomorphic-git/pull/1247 */
 +  /* note: this is es module export of this package, usually used instead of index.cjs */
++  if (result.format === 'https://github.com/isomorphic-git/isomorphic-git/pull/1247') {
++    throw Error() // make sure the PR is in the runtime code so babel can't strip it away
++  }
 +  if (result.format === 'deflated') {
 +    result.object = Buffer.from(await inflate(result.object))
 +    result.format = 'wrapped'
@@ -208,7 +214,7 @@ index 8335d52..6a6ebd4 100644
  }
  
  class AlreadyExistsError extends BaseError {
-@@ -10331,7 +10359,8 @@ async function _log({ fs, cache, gitdir, ref, depth, since }) {
+@@ -10331,7 +10362,8 @@ async function _log({ fs, cache, gitdir, ref, depth, since }) {
    const oid = await GitRefManager.resolve({ fs, gitdir, ref });
    const tips = [await _readCommit({ fs, cache, gitdir, oid })];
  

@@ -3,11 +3,14 @@
   "version": "0.0.1",
   "description": "",
   "license": "ISC",
-  "main": "dist/index.js",
-  "types": "index.d.ts",
+  "main": "dist/bundle.js",
+  "types": "dist/index.d.ts",
+  "bin": "dist/cli.js",
   "scripts": {
-    "build": "yarn webpack && yarn generate",
+    "prebuild": "rm -rf dist && rm -rf queries",
+    "build": "yarn webpack && yarn generate && yarn compile",
     "ci": "yarn build && yarn test && yarn lint",
+    "compile": "tsc -p tsconfig.lib.json",
     "predocker-apply": "yarn docker-copy-query",
     "docker-apply": "yarn psql -f /queries/create-git-functions.sql",
     "predocker-copy-query": "yarn docker-exec mkdir -p /queries",
@@ -21,6 +24,9 @@
     "test": "jest",
     "tsn": "ts-node --transpile-only",
     "webpack": "webpack"
+  },
+  "dependencies": {
+    "@rushstack/ts-command-line": "^4.7.3"
   },
   "devDependencies": {
     "@babel/core": "7.12.3",

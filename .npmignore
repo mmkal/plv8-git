@@ -1,5 +1,6 @@
 */*
-!dist
-!src
+*
+!dist/*
+!src/*
 !webpack.config.js
-!queries
+!queries/*

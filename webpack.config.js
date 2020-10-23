@@ -7,7 +7,7 @@ module.exports = {
   output: {
     libraryTarget: 'commonjs2',
     path: path.resolve(__dirname, 'dist'),
-    filename: 'index.js',
+    filename: 'bundle.js',
   },
   optimization: {
     minimize: false,

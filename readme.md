@@ -164,7 +164,7 @@ node_modules/.bin/plv8-git \
   --output /path/to/git/dir
 ```
 
-`/path/to/git/dir` will now be a valid git repository, with one file corresponding to each column in `test_table`.
+`/path/to/git/dir` will now be a valid git repository, with one file corresponding to each column in `test_table`. You can `cd` into it, and run commands like `git log`, or use your favourite git UI to inspect the history in as much detail as you'd like.
 
 ### Deletions
 
