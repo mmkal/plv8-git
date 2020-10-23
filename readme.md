@@ -22,13 +22,13 @@ Note: for `create extension plv8` to work the plv8.control file must exist on yo
 This will have created two postgres functions: `git_track` and `git_log`.
 
 <!-- codegen:start {preset: custom, source: scripts/docs.js} -->
-`git_track` is a trigger function that can be added to any table, with a `json` column, default-named `git_repo`:
+`git_track` is a trigger function that can be added to any table, with a `json` column, default-named `git`:
 
 ```sql
 create table test_table(
   id int,
   text text,
-  git_repo json
+  git json
 );
 
 create trigger test_table_git_track_trigger
@@ -37,7 +37,7 @@ create trigger test_table_git_track_trigger
   execute procedure git_track();
 ```
 
-Now, whenever rows are inserted or updated into the `test_table` table, the `git_repo` column will automatically be managed as a serialisation of the `.git` folder of an ephemeral git repo. All you need to do is `insert`/`update` as normal:
+Now, whenever rows are inserted or updated into the `test_table` table, the `git` column will automatically be managed as a serialisation of the `.git` folder of an ephemeral git repo. All you need to do is `insert`/`update` as normal:
 
 ```sql
 insert into test_table(id, text)
@@ -48,10 +48,10 @@ set text = 'updated content'
 where id = 1;
 ```
 
-There's still just a single row in the `test_table` table, but the full history of it is tracked in the `git_repo` column. The `git_log` function can be used to access the change history:
+There's still just a single row in the `test_table` table, but the full history of it is tracked in the `git` column. The `git_log` function can be used to access the change history:
 
 ```sql
-select git_log(git_repo)
+select git_log(git)
 from test_table
 where id = 1
 ```
@@ -61,51 +61,23 @@ This query will return:
 ```json
 [
   {
-    "git_log": [
-      {
-        "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
-        "author": "pguser (pguser@pg.com)",
-        "time": "2020-10-23T12:00:00.000Z",
-        "changes": [
-          {
-            "field": "text",
-            "new": "updated content",
-            "old": "initial content"
-          }
-        ]
-      },
-      {
-        "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
-        "author": "pguser (pguser@pg.com)",
-        "time": "2020-10-23T12:01:00.000Z",
-        "changes": [
-          {
-            "field": "id",
-            "new": 1
-          },
-          {
-            "field": "text",
-            "new": "initial content"
-          }
-        ]
-      }
-    ]
+    "git_log": null
   }
 ]
 ```
 
 i.e. you can see the row's full history, in human- and machine-readable form, straight from the table.
 
-To use existing git clients to get rich visual diffs, etc., you can simply pull the `git_repo` field for a given row, and convert it into real files:
+To use existing git clients to get rich visual diffs, etc., you can simply pull the `git` field for a given row, and convert it into real files:
 
 ```sql
-select git_repo from test_table where id = 1
+select git from test_table where id = 1
 ```
 
 ```json
 [
   {
-    "git_repo": "[git repo]"
+    "git": "[git repo]"
   }
 ]
 ```
@@ -117,7 +89,7 @@ This will return a json-formatted object, with keys corresponding to file system
 ```bash
 node_modules/.bin/plv8-git \
   --write \
-  --input $(psql -h localhost -U postgres postgres -c "select git_repo from test_table where id = 1") \
+  --input $(psql -h localhost -U postgres postgres -c "select git from test_table where id = 1") \
   --output /path/to/git/dir
 ```
 
@@ -125,7 +97,7 @@ node_modules/.bin/plv8-git \
 
 ### Deletions
 
-You can also take advantage of the `git_repo` column to track deletions, by adding a delete hook:
+You can also take advantage of the `git` column to track deletions, by adding a delete hook:
 
 ```sql
 create table deleted_history(
@@ -133,14 +105,14 @@ create table deleted_history(
   tablename name,
   identifier jsonb,
   deleted_at timestamptz,
-  git_repo json
+  git json
 );
 
 create function v8_test_track_deletion() returns trigger as
 $$
   begin
-    insert into deleted_history(schemaname, tablename, identifier, deleted_at, git_repo)
-    values ('public', 'test_table', jsonb_build_object('id', OLD.id), now(), OLD.git_repo);
+    insert into deleted_history(schemaname, tablename, identifier, deleted_at, git)
+    values ('public', 'test_table', jsonb_build_object('id', OLD.id), now(), OLD.git);
 
     return OLD;
   end
@@ -176,8 +148,8 @@ This will return something like:
     "identifier": {
       "id": 1
     },
-    "deleted_at": "2020-10-23T12:02:00.000Z",
-    "git_repo": "[git repo]"
+    "deleted_at": "2020-10-23T12:00:00.000Z",
+    "git": "[git repo]"
   }
 ]
 ```
@@ -185,7 +157,7 @@ This will return something like:
 You can use `git_log` again to get a readable history:
 
 ```sql
-select git_log(git_repo)
+select git_log(git)
 from deleted_history
 where identifier->>'id' = '1'
 ```
@@ -193,38 +165,10 @@ where identifier->>'id' = '1'
 ```json
 [
   {
-    "git_log": [
-      {
-        "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
-        "author": "pguser (pguser@pg.com)",
-        "time": "2020-10-23T12:03:00.000Z",
-        "changes": [
-          {
-            "field": "text",
-            "new": "updated content",
-            "old": "initial content"
-          }
-        ]
-      },
-      {
-        "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
-        "author": "pguser (pguser@pg.com)",
-        "time": "2020-10-23T12:04:00.000Z",
-        "changes": [
-          {
-            "field": "id",
-            "new": 1
-          },
-          {
-            "field": "text",
-            "new": "initial content"
-          }
-        ]
-      }
-    ]
+    "git_log": null
   }
 ]
 ```
 
-In this example, `delete_history` is generic enough that it could be the "history" table for several other relations, since it uses columns `schemaname` and `tablename`, and `identifier` as the flexible `JSONB` data type to allow for different types of primary key. This avoids the overhead of needing a new `_history` table for every relation created - all the data, including history, is captured in the `git_repo` column. The `identifier` column is only used for lookups.
+In this example, `delete_history` is generic enough that it could be the "history" table for several other relations, since it uses columns `schemaname` and `tablename`, and `identifier` as the flexible `JSONB` data type to allow for different types of primary key. This avoids the overhead of needing a new `_history` table for every relation created - all the data, including history, is captured in the `git` column. The `identifier` column is only used for lookups.
 <!-- codegen:end -->

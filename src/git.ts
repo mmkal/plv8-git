@@ -15,12 +15,16 @@ function writeGitFiles(gitFiles: any, fs: memfs.IFs) {
 
 /**
  * Implementation for a trigger function which takes a row as a hashmap, and returns
- * a new value with a git_repo json property, representing the `.git` folder of a repo.
+ * a new value with a `git` json property, representing the `.git` folder of a repo.
+ * Note - a different column name can be passed to `TG_ARGV`.
  */
 export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
   const {fs, vol} = setupMemfs()
   const repo = {fs, dir: '/repo'}
-  const repoColumn = pg.TG_ARGV[0] || 'git_repo'
+  const repoColumn = pg.TG_ARGV[0] || 'git'
+  if (pg.TG_ARGV[0] && repoColumn.match(/\W/)) {
+    throw new Error(`Invalid column name ${repoColumn}`)
+  }
 
   const setupGitFolder =
     pg.TG_OP === 'INSERT' ? () => git.init({...repo, defaultBranch: 'main'}) : () => writeGitFiles(OLD![repoColumn], fs)

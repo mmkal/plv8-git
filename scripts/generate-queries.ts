@@ -11,12 +11,16 @@ export const getFunctionBody = (js: string) => {
 }
 
 export const query = (js: string) => {
-  const quotes = `$_${crypto.createHash('sha256').update(js).digest('hex')}$`
+  const hash = crypto.createHash('sha256').update(js).digest('hex')
+  const quotes = `$_${hash}$`
   if (js.includes(quotes)) {
     throw new Error(`Failed to generate quote markers to properly escape js code`)
   }
+  if (!js.includes('https://github.com/isomorphic-git/isomorphic-git/pull/1247')) {
+    throw new Error(`Patch hasn't been applied. Run 'yarn prepare'`)
+  }
   return `
-    create function git_track() returns trigger as
+    create or replace function git_track() returns trigger as
     ${quotes}
       ${getFunctionBody(js)}
       return module.exports.rowToRepo({
@@ -25,21 +29,21 @@ export const query = (js: string) => {
     ${quotes}
     language plv8;
 
-    create function git_log(git_repo_json json, depth int) returns json as
+    create or replace function git_log(git_json json, depth int) returns json as
     ${quotes}
       ${getFunctionBody(js)}
-      return module.exports.gitLog(git_repo_json, depth)
+      return module.exports.gitLog(git_json, depth)
     ${quotes}
     language plv8 immutable strict;
 
     -- overload for getting full depth
-    create or replace function git_log(git_repo_json json) returns json as
+    create or replace function git_log(git_json json) returns json as
     $$
     
       declare 
         result json;
       begin
-        select git_log(git_repo_json, 0)
+        select git_log(git_json, 0)
         into result;
   
         return result;

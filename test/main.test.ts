@@ -20,17 +20,17 @@ beforeAll(async () => {
   // todo: use a different schema than public, then just drop and recreate the whole schema
   // set search path doesn't seem to do the trick, may require swapping out the pool or something
   await client.query(sql`
-    drop trigger if exists v8_test_track_deletion_trigger on test_table;
-    drop function if exists v8_test_track_deletion;
+    drop trigger if exists test_table_track_deletion_trigger on test_table;
+    drop function if exists test_table_track_deletion;
     drop table if exists deleted_history;
     drop trigger if exists test_table_git_track_trigger on test_table;
     drop table if exists test_table;
 
     create extension if not exists plv8;
 
-    drop function if exists git_track;
-    drop function if exists git_log(json, int);
-    drop function if exists git_log;
+    drop function if exists git_track cascade;
+    drop function if exists git_log(json, int) cascade;
+    drop function if exists git_log cascade;
   `)
 
   await client.query({
@@ -54,7 +54,7 @@ const readableJson = (o: unknown) => {
   const isUnintelligible = (k: string, v: unknown) =>
     Array.isArray(v) && v.length > 0 && v.every(x => typeof x === 'number')
 
-  const isGitRepoJson = (k: string, v: unknown) => k === 'git_repo'
+  const isGitRepoJson = (k: string, v: unknown) => k === 'git'
 
   const markers: any = {}
   const replacer = (k: string, v: unknown) => {
@@ -84,13 +84,13 @@ expect.addSnapshotSerializer({
 })
 
 test('walkthrough', async () => {
-  // `git_track` is a trigger function that can be added to any table, with a `json` column, default-named `git_repo`:
+  // `git_track` is a trigger function that can be added to any table, with a `json` column, default-named `git`:
 
   await client.query(sql`
     create table test_table(
       id int,
       text text,
-      git_repo json
+      git json
     );
     
     create trigger test_table_git_track_trigger
@@ -99,7 +99,7 @@ test('walkthrough', async () => {
       execute procedure git_track();
   `)
 
-  // Now, whenever rows are inserted or updated into the `test_table` table, the `git_repo` column will automatically be managed as a serialisation of the `.git` folder of an ephemeral git repo. All you need to do is `insert`/`update` as normal:
+  // Now, whenever rows are inserted or updated into the `test_table` table, the `git` column will automatically be managed as a serialisation of the `.git` folder of an ephemeral git repo. All you need to do is `insert`/`update` as normal:
 
   await client.query(sql`
     insert into test_table(id, text)
@@ -110,10 +110,10 @@ test('walkthrough', async () => {
     where id = 1;
   `)
 
-  // There's still just a single row in the `test_table` table, but the full history of it is tracked in the `git_repo` column. The `git_log` function can be used to access the change history:
+  // There's still just a single row in the `test_table` table, but the full history of it is tracked in the `git` column. The `git_log` function can be used to access the change history:
 
   let result = await client.many(sql`
-    select git_log(git_repo)
+    select git_log(git)
     from test_table
     where id = 1
   `)
@@ -158,16 +158,16 @@ test('walkthrough', async () => {
 
   // i.e. you can see the row's full history, in human- and machine-readable form, straight from the table.
 
-  // To use existing git clients to get rich visual diffs, etc., you can simply pull the `git_repo` field for a given row, and convert it into real files:
+  // To use existing git clients to get rich visual diffs, etc., you can simply pull the `git` field for a given row, and convert it into real files:
 
   result = await client.many(sql`
-    select git_repo from test_table where id = 1
+    select git from test_table where id = 1
   `)
 
   expect(result).toMatchInlineSnapshot(`
     [
       {
-        "git_repo": "[git repo]"
+        "git": "[git repo]"
       }
     ]
   `)
@@ -179,7 +179,7 @@ test('walkthrough', async () => {
   // ```bash
   // node_modules/.bin/plv8-git \
   //   --write \
-  //   --input $(psql -h localhost -U postgres postgres -c "select git_repo from test_table where id = 1") \
+  //   --input $(psql -h localhost -U postgres postgres -c "select git from test_table where id = 1") \
   //   --output /path/to/git/dir
   // ```
 
@@ -187,7 +187,7 @@ test('walkthrough', async () => {
 
   // ### Deletions
 
-  // You can also take advantage of the `git_repo` column to track deletions, by adding a delete hook:
+  // You can also take advantage of the `git` column to track deletions, by adding a delete hook:
 
   await client.query(sql`
     create table deleted_history(
@@ -195,24 +195,24 @@ test('walkthrough', async () => {
       tablename name,
       identifier jsonb,
       deleted_at timestamptz,
-      git_repo json
+      git json
     );
 
-    create function v8_test_track_deletion() returns trigger as
+    create function test_table_track_deletion() returns trigger as
     $$
       begin
-        insert into deleted_history(schemaname, tablename, identifier, deleted_at, git_repo)
-        values ('public', 'test_table', jsonb_build_object('id', OLD.id), now(), OLD.git_repo);
+        insert into deleted_history(schemaname, tablename, identifier, deleted_at, git)
+        values ('public', 'test_table', jsonb_build_object('id', OLD.id), now(), OLD.git);
 
         return OLD;
       end
     $$
     language plpgsql;
 
-    create trigger v8_test_track_deletion_trigger
+    create trigger test_table_track_deletion_trigger
       before delete
       on test_table for each row
-      execute procedure v8_test_track_deletion();
+      execute procedure test_table_track_deletion();
   `)
 
   await client.query(sql`
@@ -239,7 +239,7 @@ test('walkthrough', async () => {
           "id": 1
         },
         "deleted_at": "2020-10-23T12:00:00.000Z",
-        "git_repo": "[git repo]"
+        "git": "[git repo]"
       }
     ]
   `)
@@ -247,7 +247,7 @@ test('walkthrough', async () => {
   // You can use `git_log` again to get a readable history:
 
   result = await client.any(sql`
-    select git_log(git_repo)
+    select git_log(git)
     from deleted_history
     where identifier->>'id' = '1'
   `)
@@ -288,5 +288,5 @@ test('walkthrough', async () => {
     ]
   `)
 
-  // In this example, `delete_history` is generic enough that it could be the "history" table for several other relations, since it uses columns `schemaname` and `tablename`, and `identifier` as the flexible `JSONB` data type to allow for different types of primary key. This avoids the overhead of needing a new `_history` table for every relation created - all the data, including history, is captured in the `git_repo` column. The `identifier` column is only used for lookups.
+  // In this example, `delete_history` is generic enough that it could be the "history" table for several other relations, since it uses columns `schemaname` and `tablename`, and `identifier` as the flexible `JSONB` data type to allow for different types of primary key. This avoids the overhead of needing a new `_history` table for every relation created - all the data, including history, is captured in the `git` column. The `identifier` column is only used for lookups.
 })

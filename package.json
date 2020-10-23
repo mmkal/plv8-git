@@ -8,10 +8,16 @@
   "scripts": {
     "build": "yarn webpack && yarn generate",
     "ci": "yarn build && yarn test && yarn lint",
+    "predocker-apply": "yarn docker-copy-query",
+    "docker-apply": "yarn psql -f /queries/create-git-functions.sql",
+    "predocker-copy-query": "yarn docker-exec mkdir -p /queries",
+    "docker-copy-query": "docker cp queries/create-git-functions.sql plv8-git_postgres_1:/queries",
+    "docker-exec": "docker exec plv8-git_postgres_1",
     "eslint": "eslint --max-warnings 0",
     "generate": "yarn tsn scripts/generate-queries",
     "lint": "yarn eslint . && tsc -p .",
     "prepare": "patch-package",
+    "psql": "yarn --silent docker-exec psql -h localhost -U postgres postgres",
     "test": "jest",
     "tsn": "ts-node --transpile-only",
     "webpack": "webpack"
