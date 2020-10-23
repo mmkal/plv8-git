@@ -196,7 +196,7 @@ test('walkthrough', async () => {
   // This will return a json-formatted object, with keys corresponding to file system paths, and byte-array values as contents. Write them to disk using the CLI tool provided with this package:
 
   // ```bash
-  // GIT=$(psql -c "select git from test_table where id = 1")
+  // GIT=$(psql -qAt -c "select git from test_table where id = 1")
   // node_modules/.bin/plv8-git write --input "$GIT" --output path/to/git/dir
   // ```
 
