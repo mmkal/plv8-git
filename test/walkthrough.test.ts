@@ -1,6 +1,8 @@
 import {createPool, sql} from 'slonik'
 import {readFileSync} from 'fs'
 import * as path from 'path'
+import {createHash} from 'crypto'
+import {fuzzifyDate, readableJson} from './result-printer'
 
 // NOTE! This file is used to auto-generate the readme.
 // Tests that shouldn't be part of the walkthrough documentation should go elsewhere.
@@ -11,13 +13,6 @@ const client = createPool(connectionString, {
   idleTimeout: 1,
   typeParsers: [{name: 'timestamptz', parse: v => fuzzifyDate(v).toISOString()}],
 })
-
-// stupid way of getting stable date results
-const start = new Date()
-const fuzzifyDate = (s: string) => {
-  const real = new Date(s)
-  return real.getTime() - start.getTime() < 5000 ? new Date('2020-10-23T12:00Z') : real
-}
 
 beforeAll(async () => {
   // todo: use a different schema than public, then just drop and recreate the whole schema
@@ -48,42 +43,6 @@ beforeAll(async () => {
 afterAll(async () => {
   await client.end()
 })
-
-const readableJson = (o: unknown) => {
-  /**
-   * very advanced algorithm for determining if a key-value pair is worth pretty-printing. if not,
-   * we're better off putting it on a single line so it doesn't take up too much space
-   */
-  const isByteArray = (k: string, v: unknown) => Array.isArray(v) && v.length > 0 && v.every(x => typeof x === 'number')
-
-  const isGitRepoJson = (k: string, v: unknown): v is Record<string, string> =>
-    k === 'git' && v && typeof v === 'object'
-
-  const markers: any = {}
-  const replacer = (k: string, v: unknown): any => {
-    if (isByteArray(k, v)) {
-      return '[byte array]'
-    }
-    if (isGitRepoJson(k, v)) {
-      const copy: typeof v = {}
-      Object.entries(v).forEach((e, i) => {
-        copy[e[0].replace(/\.git(\/\w+)+/, `.git/path/to/object${i}`)] = '[byte array]'
-      })
-      return copy
-    }
-    if (k === 'timestamp' && typeof v === 'string') {
-      return fuzzifyDate(v).toISOString()
-    }
-    return v
-  }
-
-  let json = JSON.stringify(o, replacer, 2)
-  Object.keys(markers).forEach(id => {
-    json = json.replace(id, markers[id])
-  })
-
-  return json
-}
 
 expect.addSnapshotSerializer({
   test: () => true,
@@ -177,17 +136,17 @@ test('walkthrough', async () => {
     [
       {
         "git": {
-          "/repo/.git/path/to/object0": "[byte array]",
-          "/repo/.git/path/to/object1": "[byte array]",
-          "/repo/.git/path/to/object2": "[byte array]",
-          "/repo/.git/path/to/object3": "[byte array]",
-          "/repo/.git/path/to/object4": "[byte array]",
-          "/repo/.git/path/to/object5": "[byte array]",
-          "/repo/.git/path/to/object6": "[byte array]",
-          "/repo/.git/path/to/object7": "[byte array]",
-          "/repo/.git/path/to/object8": "[byte array]",
-          "/repo/.git/path/to/object9": "[byte array]",
-          "/repo/.git/path/to/object10": "[byte array]"
+          "/repo/.git/objects/8a/ed642bf5118b9d3c859bd4be35ecac75b6e873": "[byte array]",
+          "/repo/.git/objects/d0/ff5974b6aa52cf562bea5921840c032a860a91": "[byte array]",
+          "/repo/.git/objects/d8/4bdb34d4eeef4034d77e5403f850e35bc4a51b": "[byte array]",
+          "/repo/.git/objects/a4/16ea84421fa7e1351582da48235bac88380a33": "[byte array]",
+          "/repo/.git/objects/fb/d04e1aae9ce0b11a8946e2c9ac2619f7428a64": "[byte array]",
+          "/repo/.git/objects/a1/9a1584344c1f3783bff51524a5a4b86f2cc093": "[byte array]",
+          "/repo/.git/objects/8a/b31b5afaea56114427e1f01b81d001b079a0f5": "[byte array]",
+          "/repo/.git/refs/heads/main": "[byte array]",
+          "/repo/.git/config": "[byte array]",
+          "/repo/.git/HEAD": "[byte array]",
+          "/repo/.git/index": "[byte array]"
         }
       }
     ]
@@ -259,17 +218,17 @@ test('walkthrough', async () => {
         },
         "deleted_at": "2020-10-23T12:00:00.000Z",
         "git": {
-          "/repo/.git/path/to/object0": "[byte array]",
-          "/repo/.git/path/to/object1": "[byte array]",
-          "/repo/.git/path/to/object2": "[byte array]",
-          "/repo/.git/path/to/object3": "[byte array]",
-          "/repo/.git/path/to/object4": "[byte array]",
-          "/repo/.git/path/to/object5": "[byte array]",
-          "/repo/.git/path/to/object6": "[byte array]",
-          "/repo/.git/path/to/object7": "[byte array]",
-          "/repo/.git/path/to/object8": "[byte array]",
-          "/repo/.git/path/to/object9": "[byte array]",
-          "/repo/.git/path/to/object10": "[byte array]"
+          "/repo/.git/objects/8a/ed642bf5118b9d3c859bd4be35ecac75b6e873": "[byte array]",
+          "/repo/.git/objects/d0/ff5974b6aa52cf562bea5921840c032a860a91": "[byte array]",
+          "/repo/.git/objects/d8/4bdb34d4eeef4034d77e5403f850e35bc4a51b": "[byte array]",
+          "/repo/.git/objects/a4/16ea84421fa7e1351582da48235bac88380a33": "[byte array]",
+          "/repo/.git/objects/fb/d04e1aae9ce0b11a8946e2c9ac2619f7428a64": "[byte array]",
+          "/repo/.git/objects/a1/9a1584344c1f3783bff51524a5a4b86f2cc093": "[byte array]",
+          "/repo/.git/objects/8a/b31b5afaea56114427e1f01b81d001b079a0f5": "[byte array]",
+          "/repo/.git/refs/heads/main": "[byte array]",
+          "/repo/.git/config": "[byte array]",
+          "/repo/.git/HEAD": "[byte array]",
+          "/repo/.git/index": "[byte array]"
         }
       }
     ]

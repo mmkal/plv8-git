@@ -139,17 +139,17 @@ select git from test_table where id = 1
 [
   {
     "git": {
-      "/repo/.git/path/to/object0": "[byte array]",
-      "/repo/.git/path/to/object1": "[byte array]",
-      "/repo/.git/path/to/object2": "[byte array]",
-      "/repo/.git/path/to/object3": "[byte array]",
-      "/repo/.git/path/to/object4": "[byte array]",
-      "/repo/.git/path/to/object5": "[byte array]",
-      "/repo/.git/path/to/object6": "[byte array]",
-      "/repo/.git/path/to/object7": "[byte array]",
-      "/repo/.git/path/to/object8": "[byte array]",
-      "/repo/.git/path/to/object9": "[byte array]",
-      "/repo/.git/path/to/object10": "[byte array]"
+      "/repo/.git/objects/8a/ed642bf5118b9d3c859bd4be35ecac75b6e873": "[byte array]",
+      "/repo/.git/objects/d0/ff5974b6aa52cf562bea5921840c032a860a91": "[byte array]",
+      "/repo/.git/objects/d8/4bdb34d4eeef4034d77e5403f850e35bc4a51b": "[byte array]",
+      "/repo/.git/objects/a4/16ea84421fa7e1351582da48235bac88380a33": "[byte array]",
+      "/repo/.git/objects/fb/d04e1aae9ce0b11a8946e2c9ac2619f7428a64": "[byte array]",
+      "/repo/.git/objects/a1/9a1584344c1f3783bff51524a5a4b86f2cc093": "[byte array]",
+      "/repo/.git/objects/8a/b31b5afaea56114427e1f01b81d001b079a0f5": "[byte array]",
+      "/repo/.git/refs/heads/main": "[byte array]",
+      "/repo/.git/config": "[byte array]",
+      "/repo/.git/HEAD": "[byte array]",
+      "/repo/.git/index": "[byte array]"
     }
   }
 ]
@@ -221,17 +221,17 @@ This will return something like:
     },
     "deleted_at": "2020-10-23T12:00:00.000Z",
     "git": {
-      "/repo/.git/path/to/object0": "[byte array]",
-      "/repo/.git/path/to/object1": "[byte array]",
-      "/repo/.git/path/to/object2": "[byte array]",
-      "/repo/.git/path/to/object3": "[byte array]",
-      "/repo/.git/path/to/object4": "[byte array]",
-      "/repo/.git/path/to/object5": "[byte array]",
-      "/repo/.git/path/to/object6": "[byte array]",
-      "/repo/.git/path/to/object7": "[byte array]",
-      "/repo/.git/path/to/object8": "[byte array]",
-      "/repo/.git/path/to/object9": "[byte array]",
-      "/repo/.git/path/to/object10": "[byte array]"
+      "/repo/.git/objects/8a/ed642bf5118b9d3c859bd4be35ecac75b6e873": "[byte array]",
+      "/repo/.git/objects/d0/ff5974b6aa52cf562bea5921840c032a860a91": "[byte array]",
+      "/repo/.git/objects/d8/4bdb34d4eeef4034d77e5403f850e35bc4a51b": "[byte array]",
+      "/repo/.git/objects/a4/16ea84421fa7e1351582da48235bac88380a33": "[byte array]",
+      "/repo/.git/objects/fb/d04e1aae9ce0b11a8946e2c9ac2619f7428a64": "[byte array]",
+      "/repo/.git/objects/a1/9a1584344c1f3783bff51524a5a4b86f2cc093": "[byte array]",
+      "/repo/.git/objects/8a/b31b5afaea56114427e1f01b81d001b079a0f5": "[byte array]",
+      "/repo/.git/refs/heads/main": "[byte array]",
+      "/repo/.git/config": "[byte array]",
+      "/repo/.git/HEAD": "[byte array]",
+      "/repo/.git/index": "[byte array]"
     }
   }
 ]
