@@ -10,6 +10,7 @@ The implementation uses [plv8](https://github.com/plv8/plv8) to run JavaScript i
    - [Tracking history](#tracking-history)
    - [Deletions](#deletions)
    - [Configuraton](#configuraton)
+   - [Restoring previous versions](#restoring-previous-versions)
 - [Caveat](#caveat)
 - [Implementation](#implementation)
 <!-- codegen:end -->
@@ -17,6 +18,7 @@ The implementation uses [plv8](https://github.com/plv8/plv8) to run JavaScript i
 ## Motivation
 
 To paraphrase [@mayfer's twitter thread](https://twitter.com/mayfer/status/1308606131426582528):
+
 
 - never have to worry about building edit/delete/undo/backup/recover type features, one generic git-backed [column] is enough
 
@@ -99,6 +101,7 @@ This query will return:
         "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
         "author": "pguser (pguser@pg.com)",
         "timestamp": "2020-10-23T12:00:00.000Z",
+        "oid": "[oid]",
         "changes": [
           {
             "field": "text",
@@ -111,6 +114,7 @@ This query will return:
         "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
         "author": "pguser (pguser@pg.com)",
         "timestamp": "2020-10-23T12:00:00.000Z",
+        "oid": "[oid]",
         "changes": [
           {
             "field": "id",
@@ -253,6 +257,7 @@ where identifier->>'id' = '1'
         "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
         "author": "pguser (pguser@pg.com)",
         "timestamp": "2020-10-23T12:00:00.000Z",
+        "oid": "[oid]",
         "changes": [
           {
             "field": "text",
@@ -265,6 +270,7 @@ where identifier->>'id' = '1'
         "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
         "author": "pguser (pguser@pg.com)",
         "timestamp": "2020-10-23T12:00:00.000Z",
+        "oid": "[oid]",
         "changes": [
           {
             "field": "id",
@@ -295,7 +301,7 @@ insert into test_table(
 )
 values(
   2,
-  'a value',
+  'original value set by alice',
   '{ "commit": { "message": "some custom message", "author": { "name": "Alice", "email": "alice@gmail.com" } } }'
 )
 ```
@@ -314,6 +320,7 @@ where id = 2
         "message": "some custom message\\n\\ntest_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
         "author": "Alice (alice@gmail.com)",
         "timestamp": "2020-10-23T12:00:00.000Z",
+        "oid": "[oid]",
         "changes": [
           {
             "field": "id",
@@ -321,7 +328,7 @@ where id = 2
           },
           {
             "field": "text",
-            "new": "a value"
+            "new": "original value set by alice"
           }
         ]
       }
@@ -334,13 +341,13 @@ where id = 2
 
 ```sql
 update test_table
-set text = 'a new value',
+set text = 'a new value set by admin',
     git = '{ "commit": { "message": "Changed because the previous value was out-of-date"  } }'
 where id = 2
 ```
 
 ```sql
-select git_log(git, depth := 1)
+select git_log(git, depth := 2)
 from test_table
 where id = 2
 ```
@@ -353,11 +360,28 @@ where id = 2
         "message": "Changed because the previous value was out-of-date\\n\\ntest_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
         "author": "pguser (pguser@pg.com)",
         "timestamp": "2020-10-23T12:00:00.000Z",
+        "oid": "[oid]",
         "changes": [
           {
             "field": "text",
-            "new": "a new value",
-            "old": "a value"
+            "new": "a new value set by admin",
+            "old": "original value set by alice"
+          }
+        ]
+      },
+      {
+        "message": "some custom message\\n\\ntest_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+        "author": "Alice (alice@gmail.com)",
+        "timestamp": "2020-10-23T12:00:00.000Z",
+        "oid": "[oid]",
+        "changes": [
+          {
+            "field": "id",
+            "new": 2
+          },
+          {
+            "field": "text",
+            "new": "original value set by alice"
           }
         ]
       }
@@ -367,6 +391,80 @@ where id = 2
 ```
 
 By setting `depth := 1`, only the most recent change is returned.
+
+### Restoring previous versions
+
+`git_resolve` gives you a json representation of a prior version of a row, which can be used for backup and restore. The first argument is a `git` json value, the second value is a valid git ref string.
+
+Combine it with `git_log` to get a previous version - the below query uses `->1->'oid'` to get the oid from the second item in the log array:
+
+```sql
+select git_resolve(git, git_log(git)->1->>'oid')
+from test_table
+where id = 2
+```
+
+```json
+[
+  {
+    "git_resolve": {
+      "id": 2,
+      "text": "original value set by alice"
+    }
+  }
+]
+```
+
+This can be used in an update query to revert a change:
+
+```sql
+update test_table set (id, text) =
+(
+  select id, text
+  from json_populate_record(
+    null::test_table, (
+      select git_resolve(git, git_log(git)->1->>'oid')
+      from test_table
+      where id = 2
+    )
+  )
+)
+where id = 2
+returning id, text
+```
+
+```json
+[
+  {
+    "id": 2,
+    "text": "original value set by alice"
+  }
+]
+```
+
+Or a similar technique can restore a deleted item:
+
+```sql
+insert into test_table
+select * from json_populate_record(
+  null::test_table,
+  (
+    select git_resolve(git, git_log(git, depth := 1)->0->>'oid')
+    from deleted_history
+    where tablename = 'test_table' and identifier->>'id' = '1'
+  )
+)
+returning id, text
+```
+
+```json
+[
+  {
+    "id": 1,
+    "text": "updated content"
+  }
+]
+```
 <!-- codegen:end -->
 
 ## Caveat
@@ -375,6 +473,7 @@ By setting `depth := 1`, only the most recent change is returned.
 - It hasn't been performance-tested yet. It works well for rows with small, easily-json-stringifiable data. Large, frequently updated rows may hit issues.
 - It currently uses the `JSON` data type to store a serialised copy of the `.git` repo folder. This can likely be optimised to use `BYTEA` or another data type.
 - It uses several tools that were _not_ built with each other in mind (although each is well-designed and flexible enough for them to play nice without too many problems). See the [implementation section](#implementation)
+- It's still in v0, so breaking changes may occur.
 
 ## Implementation
 

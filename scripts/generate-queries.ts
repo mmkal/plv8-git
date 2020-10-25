@@ -29,6 +29,13 @@ export const getQuery = (js: string) => {
     ${quotes}
     language plv8;
 
+    create or replace function git_resolve(git_json json, ref text) returns json as
+    ${quotes}
+      ${getFunctionBody(js)}
+      return module.exports.gitResolve(git_json, ref)
+    ${quotes}
+    language plv8;
+
     create or replace function git_log(git_json json, depth int) returns json as
     ${quotes}
       ${getFunctionBody(js)}

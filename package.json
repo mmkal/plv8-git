@@ -2,6 +2,14 @@
   "name": "plv8-git",
   "version": "0.0.1",
   "description": "Tracks history of rows in postgresql database tables, using in-memory git operations",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mmkal/plv8-git.git"
+  },
+  "homepage": "https://github.com/mmkal/plv8-git#readme",
+  "bugs": {
+    "url": "https://github.com/mmkal/plv8-git/issues"
+  },
   "keywords": [
     "postgresql",
     "git",
@@ -13,14 +21,6 @@
     "memfs",
     "event-sourcing"
   ],
-  "homepage": "https://github.com/mmkal/plv8-git#readme",
-  "bugs": {
-    "url": "https://github.com/mmkal/plv8-git/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/mmkal/plv8-git.git"
-  },
   "license": "Apache-2.0",
   "main": "dist/bundle.js",
   "types": "dist/index.d.ts",
@@ -32,6 +32,8 @@
     "compile": "tsc -p tsconfig.lib.json",
     "predocker-apply": "yarn docker-copy-query",
     "docker-apply": "yarn psql -f /queries/create-git-functions.sql",
+    "docker-bash": "docker-compose exec postgres bash",
+    "docker-psql": "docker-compose exec postgres psql -h localhost -U postgres postgres",
     "predocker-copy-query": "yarn docker-exec mkdir -p /queries",
     "docker-copy-query": "docker cp queries/create-git-functions.sql plv8-git_postgres_1:/queries",
     "docker-exec": "docker exec plv8-git_postgres_1",

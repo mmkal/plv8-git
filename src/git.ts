@@ -5,6 +5,7 @@ import * as serializer from './serializer'
 import {SyncPromise} from './sync-promise'
 import {PG_Vars} from './pg-types'
 import {setupMemfs} from './fs'
+import {plog} from './pg-log'
 
 function writeGitFiles(gitFiles: any, fs: memfs.IFs) {
   Object.keys(gitFiles).map(filepath => {
@@ -70,6 +71,9 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
     }))
 }
 
+type TreeInfo = {type: string; content: string; oid: string}
+type WalkResult = {filepath: string; ChildInfo: TreeInfo; ParentInfo?: TreeInfo}
+
 /**
  * When passed a json object representing the `.git` folder of a repo, returns a list
  * of changes made to corresponding row. Optionally, pass `depth` to limit how far back
@@ -78,9 +82,6 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
 export const gitLog = (gitRepoJson: object, depth?: number) => {
   const {fs} = setupMemfs()
   const repo = {fs, dir: '/repo'}
-
-  type TreeInfo = {type: string; content: string; oid: string}
-  type WalkResult = {filepath: string; ChildInfo: TreeInfo; ParentInfo?: TreeInfo}
 
   return SyncPromise.resolve()
     .then(() => writeGitFiles(gitRepoJson, fs))
@@ -103,6 +104,7 @@ export const gitLog = (gitRepoJson: object, depth?: number) => {
               message: e.commit.message.trim(),
               author: `${e.commit.author.name} (${e.commit.author.email})`,
               timestamp: new Date(e.commit.author.timestamp * 1000).toISOString(),
+              oid: e.oid,
               changes: results
                 .filter(
                   r => r.ChildInfo?.type === 'blob' && r.filepath !== '.' && r.ChildInfo.oid !== r.ParentInfo?.oid,
@@ -119,11 +121,41 @@ export const gitLog = (gitRepoJson: object, depth?: number) => {
 }
 
 /**
+ * Resolves a git ref into a dictionary of values, which can be passed to `INSERT` or `UPDATE` operations
+ * @param gitRepoJson a json object representing the `.git` folder of a repo
+ * @param ref a git ref string
+ */
+export const gitResolve = (gitRepoJson: object, ref: string) => {
+  const {fs} = setupMemfs()
+  const repo = {fs, dir: '/repo'}
+
+  return SyncPromise.resolve()
+    .then(() => writeGitFiles(gitRepoJson, fs))
+    .then(() =>
+      git.walk({
+        ...repo,
+        trees: [git.TREE({ref})],
+        map: (filepath, entries) => resolveTree(entries![0])!.then(tree => ({filepath, tree})),
+      }),
+    )
+    .then((results: Array<{filepath: string; tree: ResolvedTree}>) =>
+      results
+        .filter(r => r.tree.type === 'blob' && r.filepath !== '.')
+        .reduce(
+          (dict, next) => Object.assign(dict, {[next.filepath]: serializer.parse(next.tree.content)}),
+          {} as Record<string, any>,
+        ),
+    )
+}
+
+/**
  * for some reason A.content() converts from a buffer to {"0": 100, "1": 101} format.
  * Object.values(...) converts back to a number array. Wasteful, but works for now.
  */
 const btos = (obj: any) => Buffer.from(Object.values<number>(obj || {})).toString()
 
+type PromiseResult<P> = P extends Promise<infer X> ? X : never
+type ResolvedTree = PromiseResult<ReturnType<typeof resolveTree>>
 /** gets the type, content and oid for a `WalkerEntry` */
 const resolveTree = (tree: git.WalkerEntry | undefined) => {
   const promises = tree && [tree.type(), tree.content().then(btos), tree.oid()]

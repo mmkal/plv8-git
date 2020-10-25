@@ -5,7 +5,7 @@ declare const plv8: any, WARNING: any
 /**
  * Wrapper for `plv8.elog` which outputs to a `docker-compose up` console.
  */
-export const plog = (...args: any[]) => {
+export const plog = (...args: any[]): undefined => {
   if (typeof plv8 === 'undefined') return
   // inspect is an easy way to pretty-print any value
   const s = inspect(args).slice(1, -1).trim()

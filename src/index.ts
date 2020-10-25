@@ -14,3 +14,4 @@ export const syncify = <A extends unknown[], R>(func: (...args: A) => Promise<R>
 
 export const rowToRepo = syncify(git.rowToRepo)
 export const gitLog = syncify(git.gitLog)
+export const gitResolve = syncify(git.gitResolve)

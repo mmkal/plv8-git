@@ -9,7 +9,7 @@ export const fuzzifyDate = (s: string) => {
 
 const gitRepoHashes: string[] = []
 /**
- * JSON.stringify with a replacer that returns stable values for byte arrays, git repo json representations and timestamps.
+ * JSON.stringify with a replacer that returns stable values for byte arrays, oids, git repo json representations and timestamps.
  * Useful for jest snapshot testing - the result is pretty human readable and stays the same across runs.
  */
 export const readableJson = (o: unknown) => {
@@ -42,6 +42,9 @@ export const readableJson = (o: unknown) => {
         copy[newKey] = '[byte array]'
       })
       return copy
+    }
+    if (k === 'oid' && typeof v === 'string') {
+      return '[oid]'
     }
     if (k === 'timestamp' && typeof v === 'string') {
       return fuzzifyDate(v).toISOString()
