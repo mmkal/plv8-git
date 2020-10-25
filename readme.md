@@ -100,7 +100,7 @@ This query will return:
       {
         "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
         "author": "pguser (pguser@pg.com)",
-        "timestamp": "2020-10-23T12:00:00.000Z",
+        "timestamp": "2000-12-25T12:00:00.000Z",
         "oid": "[oid]",
         "changes": [
           {
@@ -113,7 +113,7 @@ This query will return:
       {
         "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
         "author": "pguser (pguser@pg.com)",
-        "timestamp": "2020-10-23T12:00:00.000Z",
+        "timestamp": "2000-12-25T12:00:00.000Z",
         "oid": "[oid]",
         "changes": [
           {
@@ -216,29 +216,27 @@ where identifier->>'id' = '1'
 This will return something like:
 
 ```json
-[
-  {
-    "schemaname": "public",
-    "tablename": "test_table",
-    "identifier": {
-      "id": 1
-    },
-    "deleted_at": "2020-10-23T12:00:00.000Z",
-    "git": {
-      "/repo/.git/objects/8a/ed642bf5118b9d3c859bd4be35ecac75b6e873": "[byte array]",
-      "/repo/.git/objects/d0/ff5974b6aa52cf562bea5921840c032a860a91": "[byte array]",
-      "/repo/.git/objects/d8/4bdb34d4eeef4034d77e5403f850e35bc4a51b": "[byte array]",
-      "/repo/.git/objects/a4/16ea84421fa7e1351582da48235bac88380a33": "[byte array]",
-      "/repo/.git/objects/fb/d04e1aae9ce0b11a8946e2c9ac2619f7428a64": "[byte array]",
-      "/repo/.git/objects/a1/9a1584344c1f3783bff51524a5a4b86f2cc093": "[byte array]",
-      "/repo/.git/objects/8a/b31b5afaea56114427e1f01b81d001b079a0f5": "[byte array]",
-      "/repo/.git/refs/heads/main": "[byte array]",
-      "/repo/.git/config": "[byte array]",
-      "/repo/.git/HEAD": "[byte array]",
-      "/repo/.git/index": "[byte array]"
-    }
+{
+  "schemaname": "public",
+  "tablename": "test_table",
+  "identifier": {
+    "id": 1
+  },
+  "deleted_at": "2000-12-25T12:00:00.000Z",
+  "git": {
+    "/repo/.git/objects/8a/ed642bf5118b9d3c859bd4be35ecac75b6e873": "[byte array]",
+    "/repo/.git/objects/d0/ff5974b6aa52cf562bea5921840c032a860a91": "[byte array]",
+    "/repo/.git/objects/d8/4bdb34d4eeef4034d77e5403f850e35bc4a51b": "[byte array]",
+    "/repo/.git/objects/a4/16ea84421fa7e1351582da48235bac88380a33": "[byte array]",
+    "/repo/.git/objects/fb/d04e1aae9ce0b11a8946e2c9ac2619f7428a64": "[byte array]",
+    "/repo/.git/objects/a1/9a1584344c1f3783bff51524a5a4b86f2cc093": "[byte array]",
+    "/repo/.git/objects/8a/b31b5afaea56114427e1f01b81d001b079a0f5": "[byte array]",
+    "/repo/.git/refs/heads/main": "[byte array]",
+    "/repo/.git/config": "[byte array]",
+    "/repo/.git/HEAD": "[byte array]",
+    "/repo/.git/index": "[byte array]"
   }
-]
+}
 ```
 
 You can use `git_log` again to get a readable history:
@@ -256,7 +254,7 @@ where identifier->>'id' = '1'
       {
         "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
         "author": "pguser (pguser@pg.com)",
-        "timestamp": "2020-10-23T12:00:00.000Z",
+        "timestamp": "2000-12-25T12:00:00.000Z",
         "oid": "[oid]",
         "changes": [
           {
@@ -269,7 +267,7 @@ where identifier->>'id' = '1'
       {
         "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
         "author": "pguser (pguser@pg.com)",
-        "timestamp": "2020-10-23T12:00:00.000Z",
+        "timestamp": "2000-12-25T12:00:00.000Z",
         "oid": "[oid]",
         "changes": [
           {
@@ -319,7 +317,7 @@ where id = 2
       {
         "message": "some custom message\\n\\ntest_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
         "author": "Alice (alice@gmail.com)",
-        "timestamp": "2020-10-23T12:00:00.000Z",
+        "timestamp": "2000-12-25T12:00:00.000Z",
         "oid": "[oid]",
         "changes": [
           {
@@ -359,7 +357,7 @@ where id = 2
       {
         "message": "Changed because the previous value was out-of-date\\n\\ntest_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
         "author": "pguser (pguser@pg.com)",
-        "timestamp": "2020-10-23T12:00:00.000Z",
+        "timestamp": "2000-12-25T12:00:00.000Z",
         "oid": "[oid]",
         "changes": [
           {
@@ -372,7 +370,7 @@ where id = 2
       {
         "message": "some custom message\\n\\ntest_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
         "author": "Alice (alice@gmail.com)",
-        "timestamp": "2020-10-23T12:00:00.000Z",
+        "timestamp": "2000-12-25T12:00:00.000Z",
         "oid": "[oid]",
         "changes": [
           {
@@ -434,12 +432,10 @@ returning id, text
 ```
 
 ```json
-[
-  {
-    "id": 2,
-    "text": "original value set by alice"
-  }
-]
+{
+  "id": 2,
+  "text": "original value set by alice"
+}
 ```
 
 Or a similar technique can restore a deleted item:
@@ -458,12 +454,10 @@ returning id, text
 ```
 
 ```json
-[
-  {
-    "id": 1,
-    "text": "updated content"
-  }
-]
+{
+  "id": 1,
+  "text": "updated content"
+}
 ```
 <!-- codegen:end -->
 

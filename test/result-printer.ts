@@ -4,7 +4,7 @@ const start = new Date()
 /** stupid way of getting stable date results */
 export const fuzzifyDate = (s: string) => {
   const real = new Date(s)
-  return real.getTime() - start.getTime() < 5000 ? new Date('2020-10-23T12:00Z') : real
+  return real.getTime() - start.getTime() < 5000 ? new Date('2000-12-25T12:00Z') : real
 }
 
 const gitRepoHashes: string[] = []
