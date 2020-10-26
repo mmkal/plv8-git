@@ -12,7 +12,7 @@ export class Plv8WriteAction extends cli.CommandLineAction {
       actionName: 'write',
       summary: 'Write a git repo to disk',
       documentation:
-        'Pass a json-formatted git repo as input. and an output directory. A fully functional git repo representing that row will be written to disk.',
+        'Pass a json-formatted git repo as input, and a directory path as output. A fully functional git repo representing that row will be written to disk.',
     })
   }
 
@@ -31,9 +31,12 @@ export class Plv8WriteAction extends cli.CommandLineAction {
   }
 
   async onExecute() {
-    const [input, output] = [this._input.value, this._output.value!]
+    const [input, output] = [this._input.value, this._output.value]
     if (!input) {
-      throw Error(`Missing input.\n` + this.renderHelpText())
+      throw new Error(`Missing input.\n` + this.renderHelpText())
+    }
+    if (!output) {
+      throw new Error(`Missing output.\n` + this.renderHelpText())
     }
     const repo = JSON.parse(input)
     fs.mkdirSync(output, {recursive: true})
