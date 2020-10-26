@@ -5,7 +5,6 @@ import * as serializer from './serializer'
 import {SyncPromise} from './sync-promise'
 import {PG_Vars} from './pg-types'
 import {setupMemfs} from './fs'
-import {plog} from './pg-log'
 
 function writeGitFiles(gitFiles: any, fs: memfs.IFs) {
   Object.keys(gitFiles).map(filepath => {
@@ -36,12 +35,11 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
     .then(setupGitFolder)
     .then(() => {
       if (!NEW) return
-      Object.keys(NEW)
-        .filter(k => k !== repoColumn)
-        .forEach((k, i) => {
-          const val = NEW[k]
+      Object.entries(NEW)
+        .filter(([k]) => k !== repoColumn)
+        .forEach(([k, val]) => {
           const content = serializer.stringify(val)
-          const filepath = `${repo.dir}/${k.replace(/\W/g, '_')}`
+          const filepath = `${repo.dir}/${k}`
           fs.writeFileSync(filepath, content, {encoding: 'utf8'})
         })
       return SyncPromise.resolve()
