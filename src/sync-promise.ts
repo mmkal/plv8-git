@@ -1,24 +1,18 @@
-import {plog} from './pg-log'
+const rethrow = (e: unknown) => {
+  throw e
+}
 
 const createSyncPromise = (val: any): any => {
   const self = {
     syncPromise: true,
     val,
-    coerceSync: () => val,
-    then: (
-      onok = (x: any) => x,
-      onerr = (e: any) => {
-        e.logged = e.logged || plog(e.stack.split('\n')) || true
-        throw e
-      },
-    ) => {
-      const next = (() => {
-        try {
-          return onok(val)
-        } catch (e) {
-          return onerr(e)
-        }
-      })()
+    then: (onok = (x: any) => x, onerr = rethrow) => {
+      let next
+      try {
+        next = onok(val)
+      } catch (e) {
+        next = onerr(e)
+      }
       return SyncPromise.resolve(next)
     },
     catch: () => {
@@ -36,9 +30,7 @@ const createSyncPromise = (val: any): any => {
 export const SyncPromise: Pick<typeof Promise, 'resolve' | 'reject' | 'all'> = {
   resolve: ((val?: any): Promise<any> =>
     val && typeof val.then === 'function' ? val : createSyncPromise(val)) as typeof Promise.resolve,
-  reject: err => {
-    throw err
-  },
+  reject: rethrow,
   all: (((promises: any[]) =>
     SyncPromise.resolve(
       promises.map(p => {
