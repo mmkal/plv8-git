@@ -24,6 +24,8 @@ beforeAll(async () => {
     drop table if exists deleted_history;
     drop trigger if exists test_table_git_track_trigger on test_table;
     drop table if exists test_table;
+    drop trigger if exists repos_git_track_trigger on repos;
+    drop table if exists repos;
 
     create extension if not exists plv8;
 
@@ -74,10 +76,10 @@ test('walkthrough', async () => {
 
   await client.query(sql`
     insert into test_table(id, text)
-    values(1, 'initial content');
+    values(1, 'item 1 old content');
 
     update test_table
-    set text = 'updated content'
+    set text = 'item 1 new content'
     where id = 1;
   `)
 
@@ -102,8 +104,8 @@ test('walkthrough', async () => {
           "changes": [
             {
               "field": "text",
-              "new": "updated content",
-              "old": "initial content"
+              "new": "item 1 new content",
+              "old": "item 1 old content"
             }
           ]
         },
@@ -119,7 +121,7 @@ test('walkthrough', async () => {
             },
             {
               "field": "text",
-              "new": "initial content"
+              "new": "item 1 old content"
             }
           ]
         }
@@ -252,8 +254,8 @@ test('walkthrough', async () => {
           "changes": [
             {
               "field": "text",
-              "new": "updated content",
-              "old": "initial content"
+              "new": "item 1 new content",
+              "old": "item 1 old content"
             }
           ]
         },
@@ -269,7 +271,7 @@ test('walkthrough', async () => {
             },
             {
               "field": "text",
-              "new": "initial content"
+              "new": "item 1 old content"
             }
           ]
         }
@@ -405,9 +407,9 @@ test('walkthrough', async () => {
 
   // ### Restoring previous versions
 
-  // `git_resolve` gives you a json representation of a prior version of a row, which can be used for backup and restore. The first argument is a `git` json value, the second value is a valid git ref string.
+  // `git_resolve` gives you a json representation of a prior version of a row, which can be used for backup and restore. The first argument is a `git` json value, the second value is a valid git ref string (e.g. a git oid returned by `git_log`, or `HEAD`, or `main`. Note that an issue with [isomorphic-git](https://github.com/isomorphic-git/isomorphic-git/issues/1238) means that you can't currently pass values like `HEAD~1` here).
 
-  // Combine it with `git_log` to get a previous version - the below query uses `->1->'oid'` to get the oid from the second item in the log array:
+  // Combine it with `git_log` to get a previous version - the below query uses `->1->>'oid'` to get the oid from the second item in the log array:
 
   result = await client.one(sql`
     select git_resolve(git, ref := git_log(git)->1->>'oid')
@@ -475,7 +477,7 @@ test('walkthrough', async () => {
     select * from json_populate_record(
       null::test_table,
       (
-        select git_resolve(git, ref := git_log(git, depth := 1)->0->>'oid')
+        select git_resolve(git, ref := 'HEAD')
         from deleted_history
         where tablename = 'test_table' and identifier->>'id' = '1'
       )
@@ -486,7 +488,67 @@ test('walkthrough', async () => {
   expect(result).toMatchInlineSnapshot(`
     {
       "id": 1,
-      "text": "updated content"
+      "text": "item 1 new content"
+    }
+  `)
+
+  // ### Column name clashes
+
+  // History can be tracked even on pre-existing tables which already have a `git` column used for something else:
+
+  await client.query(sql`
+    create table repos(
+      id int,
+      name text,
+      git text -- the repo clone url
+    );
+  `)
+
+  // Any column with type `json` can be used, by passing the column name when creating a trigger:
+
+  await client.query(sql`
+    alter table repos
+    add column my_custom_plv8_git_column json;
+
+    create trigger repos_git_track_trigger
+      before insert or update
+      on repos for each row
+      execute procedure git_track('my_custom_plv8_git_column');
+
+    insert into repos(id, name, git)
+    values (1, 'plv8-git', 'https://github.com/mmkal/plv8-git.git');
+  `)
+
+  result = await client.one(sql`
+    select git_log(my_custom_plv8_git_column)
+    from repos
+    where git = 'https://github.com/mmkal/plv8-git.git'
+  `)
+
+  expect(result).toMatchInlineSnapshot(`
+    {
+      "git_log": [
+        {
+          "message": "repos_git_track_trigger: BEFORE INSERT ROW on public.repos",
+          "author": "pguser (pguser@pg.com)",
+          "timestamp": "2000-12-25T12:00:00.000Z",
+          "oid": "[oid]",
+          "changes": [
+            {
+              "field": "git",
+              "new": "https://github.com/mmkal/plv8-git.git"
+            },
+            {
+              "field": "id",
+              "new": 1
+            },
+            {
+              "field": "name",
+              "new": "plv8-git"
+            }
+          ]
+        }
+      ]
     }
   `)
 })

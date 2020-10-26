@@ -14,6 +14,7 @@ The implementation uses [plv8](https://github.com/plv8/plv8) to run JavaScript i
       - [Log depth](#log-depth)
       - [Tags](#tags)
    - [Restoring previous versions](#restoring-previous-versions)
+   - [Column name clashes](#column-name-clashes)
 - [Caveat](#caveat)
 - [Implementation](#implementation)
 <!-- codegen:end -->
@@ -55,7 +56,7 @@ psql -f node_modules/plv8-git/queries/create-git-functions.sql
 
 Note: for `create extension plv8` to work the plv8.control file must exist on your database system. You can use [the postgres-plv8 docker image](https://github.com/clkao/docker-postgres-plv8/tree/master/12-2) for development (or production, if you really want to deploy a containerised database to production). Amazon RDS instances [have the extension available](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html), as does [Azure Postgres 11](https://docs.microsoft.com/en-us/azure/postgresql/concepts-extensions#postgres-11-extensions).
 
-This will have created two postgres functions: `git_track` and `git_log`.
+This will have created three postgres functions: `git_track`, `git_log` and `git_resolve`.
 
 <!-- codegen:start {preset: custom, source: scripts/docs.js} -->
 ### Tracking history
@@ -79,10 +80,10 @@ Now, whenever rows are inserted or updated into the `test_table` table, the `git
 
 ```sql
 insert into test_table(id, text)
-values(1, 'initial content');
+values(1, 'item 1 old content');
 
 update test_table
-set text = 'updated content'
+set text = 'item 1 new content'
 where id = 1;
 ```
 
@@ -107,8 +108,8 @@ This query will return:
       "changes": [
         {
           "field": "text",
-          "new": "updated content",
-          "old": "initial content"
+          "new": "item 1 new content",
+          "old": "item 1 old content"
         }
       ]
     },
@@ -124,7 +125,7 @@ This query will return:
         },
         {
           "field": "text",
-          "new": "initial content"
+          "new": "item 1 old content"
         }
       ]
     }
@@ -257,8 +258,8 @@ where identifier->>'id' = '1'
       "changes": [
         {
           "field": "text",
-          "new": "updated content",
-          "old": "initial content"
+          "new": "item 1 new content",
+          "old": "item 1 old content"
         }
       ]
     },
@@ -274,7 +275,7 @@ where identifier->>'id' = '1'
         },
         {
           "field": "text",
-          "new": "initial content"
+          "new": "item 1 old content"
         }
       ]
     }
@@ -410,9 +411,9 @@ where id = 3;
 
 ### Restoring previous versions
 
-`git_resolve` gives you a json representation of a prior version of a row, which can be used for backup and restore. The first argument is a `git` json value, the second value is a valid git ref string.
+`git_resolve` gives you a json representation of a prior version of a row, which can be used for backup and restore. The first argument is a `git` json value, the second value is a valid git ref string (e.g. a git oid returned by `git_log`, or `HEAD`, or `main`. Note that an issue with [isomorphic-git](https://github.com/isomorphic-git/isomorphic-git/issues/1238) means that you can't currently pass values like `HEAD~1` here).
 
-Combine it with `git_log` to get a previous version - the below query uses `->1->'oid'` to get the oid from the second item in the log array:
+Combine it with `git_log` to get a previous version - the below query uses `->1->>'oid'` to get the oid from the second item in the log array:
 
 ```sql
 select git_resolve(git, ref := git_log(git)->1->>'oid')
@@ -480,7 +481,7 @@ insert into test_table
 select * from json_populate_record(
   null::test_table,
   (
-    select git_resolve(git, ref := git_log(git, depth := 1)->0->>'oid')
+    select git_resolve(git, ref := 'HEAD')
     from deleted_history
     where tablename = 'test_table' and identifier->>'id' = '1'
   )
@@ -491,7 +492,67 @@ returning id, text
 ```json
 {
   "id": 1,
-  "text": "updated content"
+  "text": "item 1 new content"
+}
+```
+
+### Column name clashes
+
+History can be tracked even on pre-existing tables which already have a `git` column used for something else:
+
+```sql
+create table repos(
+  id int,
+  name text,
+  git text -- the repo clone url
+);
+```
+
+Any column with type `json` can be used, by passing the column name when creating a trigger:
+
+```sql
+alter table repos
+add column my_custom_plv8_git_column json;
+
+create trigger repos_git_track_trigger
+  before insert or update
+  on repos for each row
+  execute procedure git_track('my_custom_plv8_git_column');
+
+insert into repos(id, name, git)
+values (1, 'plv8-git', 'https://github.com/mmkal/plv8-git.git');
+```
+
+```sql
+select git_log(my_custom_plv8_git_column)
+from repos
+where git = 'https://github.com/mmkal/plv8-git.git'
+```
+
+```json
+{
+  "git_log": [
+    {
+      "message": "repos_git_track_trigger: BEFORE INSERT ROW on public.repos",
+      "author": "pguser (pguser@pg.com)",
+      "timestamp": "2000-12-25T12:00:00.000Z",
+      "oid": "[oid]",
+      "changes": [
+        {
+          "field": "git",
+          "new": "https://github.com/mmkal/plv8-git.git"
+        },
+        {
+          "field": "id",
+          "new": 1
+        },
+        {
+          "field": "name",
+          "new": "plv8-git"
+        }
+      ]
+    }
+  ]
 }
 ```
 <!-- codegen:end -->
@@ -510,7 +571,8 @@ At its core, this library bundles [isomorphic-git](https://npmjs.com/package/iso
 
 Since plv8 triggers need to return values synchronously, but isomorphic-git uses promises extensively, a shim of the global `Promise` object was created called [`SyncPromise`](./src/sync-promise.ts). This has the same API as `Promise`, but its callbacks are executed immediately.
 
-To avoid the event-loop, all async-await code in isomorphic-git is transformed to `.then`, `.catch` etc. by [babel-plugin-transform-async-to-promises](https://npmjs.com/package/babel-plugin-transform-async-to-promises). `async-lock`, which is a dependency of isomorphic-git, is also [shimmed](./scripts/async-lock-shim.js) to bypass its locking mechanism which relies on timers - it's not necessary anyway, since all git operations take place on an ephemeral, in-memory, synchronous filesystem.
+To avoid the event-loop, all async-await code in isomorphic-git is transformed to `.then`, `.catch` etc. by [babel-plugin-transform-async-to-promises](https://npmjs.com/package/babel-plugin-transf
+orm-async-to-promises). `async-lock`, which is a dependency of isomorphic-git, is also [shimmed](./scripts/async-lock-shim.js) to bypass its locking mechanism which relies on timers - it's not necessary anyway, since all git operations take place on an ephemeral, in-memory, synchronous filesystem.
 
 `memfs` is also shimmed before being passed to isomorphic-git to [replace its promise-based operations with sync ones](./src/fs.ts).
 
