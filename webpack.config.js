@@ -1,6 +1,7 @@
 const path = require('path')
+const webpack = require('webpack')
 
-/** @type {import('webpack').Configuration} */
+/** @type {webpack.Configuration} */
 module.exports = {
   entry: path.join(__dirname, './src/index.ts'),
   mode: 'none',
@@ -43,7 +44,7 @@ module.exports = {
         test: /async-lock/,
         use: [
           {
-            loader: require.resolve('./scripts/async-lock-shim'),
+            loader: require.resolve('./webpack/async-lock-shim'),
           },
         ],
       },
@@ -54,7 +55,14 @@ module.exports = {
     fallback: {
       path: require.resolve('path-browserify'),
       stream: require.resolve('stream-browserify'),
-      process: require.resolve('process/browser'),
     },
   },
+  plugins: [
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+      process: [require.resolve('./webpack/globals'), 'process'],
+      setTimeout: [require.resolve('./webpack/globals'), 'setTimeout'],
+      setInterval: [require.resolve('./webpack/globals'), 'setInterval'],
+    }),
+  ],
 }
