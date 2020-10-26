@@ -54,7 +54,7 @@ module.exports = {
     fallback: {
       path: require.resolve('path-browserify'),
       stream: require.resolve('stream-browserify'),
-      process: false,
+      process: require.resolve('process/browser'),
     },
   },
 }
