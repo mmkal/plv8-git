@@ -9,7 +9,10 @@ The implementation uses [plv8](https://github.com/plv8/plv8) to run JavaScript i
 - [Usage](#usage)
    - [Tracking history](#tracking-history)
    - [Deletions](#deletions)
-   - [Configuraton](#configuraton)
+   - [Options](#options)
+      - [Commit messages](#commit-messages)
+      - [Log depth](#log-depth)
+      - [Tags](#tags)
    - [Restoring previous versions](#restoring-previous-versions)
 - [Caveat](#caveat)
 - [Implementation](#implementation)
@@ -281,7 +284,9 @@ where identifier->>'id' = '1'
 
 In this example, `deleted_history` is generic enough that it could be the "history" table for several other relations, since it uses columns `schemaname` and `tablename`, and `identifier` as the flexible `JSONB` data type to allow for different types of primary key. This avoids the overhead of needing a new `_history` table for every relation created - all the data, including history, is captured in the `git` column. The `identifier` column is only used for lookups.
 
-### Configuraton
+### Options
+
+#### Commit messages
 
 You can pass a custom commit message and author by pre-loading the `git` property with `commit` details, which can include a commit message and user info:
 
@@ -326,6 +331,8 @@ where id = 2
   ]
 }
 ```
+
+#### Log depth
 
 `git_log` also accepts a `depth` parameter to limit the amount of history that is fetched:
 
@@ -380,6 +387,27 @@ where id = 2
 
 By setting `depth := 1`, only the most recent change is returned.
 
+#### Tags
+
+You can pass `tags` to the git object. The below example uses a convention of tagging with the day, month, and year so it will later be easy to restore to previous versions:
+
+```sql
+insert into test_table(id, text, git)
+values (3, 'item 3 xmas day value', '{ "git": { "tags": ["2000-12-25", "2000-12", "2000"] } }');
+
+update test_table
+set
+  text = 'item 3 boxing day value',
+  git = '{ "tags": ["2000-12-26", "2000-12", "2000"] }'
+where id = 3;
+
+update test_table
+set
+  text = 'item 3 new year value',
+  git = '{ "tags": ["2001-01-01", "2001-01", "2001"] }'
+where id = 3;
+```
+
 ### Restoring previous versions
 
 `git_resolve` gives you a json representation of a prior version of a row, which can be used for backup and restore. The first argument is a `git` json value, the second value is a valid git ref string.
@@ -426,7 +454,32 @@ returning id, text
 }
 ```
 
-Or a similar technique can restore a deleted item:
+If you used `tags` as described above, you can take advantage of them to restore to a known-good state easily:
+
+```sql
+update test_table set (id, text) =
+(
+  select id, text
+  from json_populate_record(
+    null::test_table, (
+      select git_resolve(git, '2000-12')
+      from test_table
+      where id = 3
+    )
+  )
+)
+where id = 3
+returning id, text
+```
+
+```json
+{
+  "id": 3,
+  "text": "item 3 boxing day value"
+}
+```
+
+A similar technique can restore a deleted item:
 
 ```sql
 insert into test_table

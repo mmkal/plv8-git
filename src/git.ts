@@ -53,6 +53,13 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
             author: {name: 'pguser', email: 'pguser@pg.com', ...NEW?.[repoColumn]?.commit?.author},
           }),
         )
+        .then(commit =>
+          SyncPromise.all(
+            (NEW?.git?.tags || []).map((tag: string) => {
+              return git.tag({...repo, ref: tag, object: commit})
+            }),
+          ),
+        )
     })
     .then(() => {
       const files: Record<string, number[]> = {}

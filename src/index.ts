@@ -1,4 +1,5 @@
 import * as git from './git'
+import {plog} from './pg-log'
 import {SyncPromise} from './sync-promise'
 
 export {SyncPromise} from './sync-promise'
@@ -14,6 +15,7 @@ export * from './git'
  */
 export const git_call_sync = (name: keyof typeof git, args: any[]) => {
   Object.assign(Promise, SyncPromise)
+  Object.assign(console, {log: plog})
   const operation: (...args: any[]) => Promise<any> = git[name]
   let result
   operation(...args).then(r => (result = r))
