@@ -1,6 +1,6 @@
 {
   "name": "plv8-git",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Tracks history of rows in postgresql database tables, using in-memory git operations",
   "repository": {
     "type": "git",
