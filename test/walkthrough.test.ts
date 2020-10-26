@@ -410,7 +410,7 @@ test('walkthrough', async () => {
   // Combine it with `git_log` to get a previous version - the below query uses `->1->'oid'` to get the oid from the second item in the log array:
 
   result = await client.one(sql`
-    select git_resolve(git, git_log(git)->1->>'oid')
+    select git_resolve(git, ref := git_log(git)->1->>'oid')
     from test_table
     where id = 2
   `)
@@ -431,11 +431,8 @@ test('walkthrough', async () => {
     (
       select id, text
       from json_populate_record(
-        null::test_table, (
-          select git_resolve(git, git_log(git)->1->>'oid')
-          from test_table
-          where id = 2
-        )
+        null::test_table,
+        git_resolve(git, ref := git_log(git)->1->>'oid')
       )
     )
     where id = 2
@@ -456,11 +453,8 @@ test('walkthrough', async () => {
     (
       select id, text
       from json_populate_record(
-        null::test_table, (
-          select git_resolve(git, '2000-12')
-          from test_table
-          where id = 3
-        )
+        null::test_table,
+        git_resolve(git, ref := '2000-12')
       )
     )
     where id = 3
@@ -481,7 +475,7 @@ test('walkthrough', async () => {
     select * from json_populate_record(
       null::test_table,
       (
-        select git_resolve(git, git_log(git, depth := 1)->0->>'oid')
+        select git_resolve(git, ref := git_log(git, depth := 1)->0->>'oid')
         from deleted_history
         where tablename = 'test_table' and identifier->>'id' = '1'
       )

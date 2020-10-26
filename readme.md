@@ -53,7 +53,7 @@ psql -c "
 psql -f node_modules/plv8-git/queries/create-git-functions.sql
 ```
 
-Note: for `create extension plv8` to work the plv8.control file must exist on your database system. You can use [the postgres-plv8 docker image](https://github.com/clkao/docker-postgres-plv8/tree/master/12-2) for development (or production, if you really want to deploy a containerised database to production). Amazon RDS instances [should have the extension available](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html).
+Note: for `create extension plv8` to work the plv8.control file must exist on your database system. You can use [the postgres-plv8 docker image](https://github.com/clkao/docker-postgres-plv8/tree/master/12-2) for development (or production, if you really want to deploy a containerised database to production). Amazon RDS instances [have the extension available](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html), as does [Azure Postgres 11](https://docs.microsoft.com/en-us/azure/postgresql/concepts-extensions#postgres-11-extensions).
 
 This will have created two postgres functions: `git_track` and `git_log`.
 
@@ -415,7 +415,7 @@ where id = 3;
 Combine it with `git_log` to get a previous version - the below query uses `->1->'oid'` to get the oid from the second item in the log array:
 
 ```sql
-select git_resolve(git, git_log(git)->1->>'oid')
+select git_resolve(git, ref := git_log(git)->1->>'oid')
 from test_table
 where id = 2
 ```
@@ -436,11 +436,8 @@ update test_table set (id, text) =
 (
   select id, text
   from json_populate_record(
-    null::test_table, (
-      select git_resolve(git, git_log(git)->1->>'oid')
-      from test_table
-      where id = 2
-    )
+    null::test_table,
+    git_resolve(git, ref := git_log(git)->1->>'oid')
   )
 )
 where id = 2
@@ -461,11 +458,8 @@ update test_table set (id, text) =
 (
   select id, text
   from json_populate_record(
-    null::test_table, (
-      select git_resolve(git, '2000-12')
-      from test_table
-      where id = 3
-    )
+    null::test_table,
+    git_resolve(git, ref := '2000-12')
   )
 )
 where id = 3
@@ -486,7 +480,7 @@ insert into test_table
 select * from json_populate_record(
   null::test_table,
   (
-    select git_resolve(git, git_log(git, depth := 1)->0->>'oid')
+    select git_resolve(git, ref := git_log(git, depth := 1)->0->>'oid')
     from deleted_history
     where tablename = 'test_table' and identifier->>'id' = '1'
   )

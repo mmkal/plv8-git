@@ -13,6 +13,8 @@ module.exports = params => {
   }
   const end = lines.findIndex((line, i) => i > start && line.startsWith('})'))
 
+  const codeBlockLinePrefix = 'CODE_BLOCK_LINE:'
+
   return lines
     .slice(start, end)
     .map(line => line.replace(/^  /, ''))
@@ -23,18 +25,29 @@ module.exports = params => {
         ? section
         : section
             .split('\n')
-            .map(line => line.replace(/^  /, ''))
+            .map(line => line.replace(/^  /, codeBlockLinePrefix))
             .join('\n')
     })
     .join('`')
     .split('\n')
-    .map(line => {
+    .filter(line => !line.startsWith('// todo') && !line.startsWith('// TODO'))
+    .map((line, i) => {
       if (line.includes('sql`')) return '```sql'
       if (line.includes('.toMatchInlineSnapshot(`')) return '```json'
       if (line.trim().endsWith('`)')) return '```'
       if (line.startsWith('// ')) return line.replace('// ', '')
-      if (line.includes(`await`) || line.includes(`expect(`) || line.includes(`toMatchInlineSnapshot`)) {
-        throw new Error(`Unexpected code in test ${testName} from ${testfile}: ${line}`)
+      if (line.startsWith(codeBlockLinePrefix)) return line.replace(codeBlockLinePrefix, '')
+      if (line.replace(/\r/, '') !== '') {
+        throw new Error(
+          `
+            Unexpected content in test ${testName} from ${testfile}:${i}
+            The test is used to generate documentation, so should only contain sql queries and inline snapshots.
+            Use a different test for anything else!
+            Found content:
+
+            ${JSON.stringify(line)}
+          `.replace(/^ +/g, ''),
+        )
       }
       return line
     })
