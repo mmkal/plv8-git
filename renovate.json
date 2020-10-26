@@ -1,5 +1,20 @@
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    "config:base",
+    ":semanticCommits"
+  ],
+  "schedule": [
+    "before 3am on Monday"
+  ],
+  "prConcurrentLimit": 4,
+  "dependencyDashboard": true,
+  "dependencyDashboardAutoclose": true,
+  "packageRules": [
+    {
+      "depTypeList": ["devDependencies"],
+      "groupName": "devDependencies",
+      "automerge": true
+    }
   ]
 }
