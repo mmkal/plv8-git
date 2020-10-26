@@ -30,6 +30,8 @@ beforeAll(async () => {
     drop function if exists git_track cascade;
     drop function if exists git_log(json, int) cascade;
     drop function if exists git_log cascade;
+    drop function if exists git_resolve cascade;
+    drop function if exists git_call_sync cascade;
   `)
 
   await client.query({

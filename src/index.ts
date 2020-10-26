@@ -1,17 +1,21 @@
 import * as git from './git'
+import {SyncPromise} from './sync-promise'
 
 export {SyncPromise} from './sync-promise'
 
-/**
- * Turn a promise-returning function into a synchronous one. Only works if the function uses
- * `SyncPromise` under the hood.
- */
-export const syncify = <A extends unknown[], R>(func: (...args: A) => Promise<R>) => (...args: A) => {
-  let result!: R
-  func(...args).then(r => (result = r))
-  return result!
-}
+export * from './git'
 
-export const rowToRepo = syncify(git.rowToRepo)
-export const gitLog = syncify(git.gitLog)
-export const gitResolve = syncify(git.gitResolve)
+/**
+ * Calls a function from the `./git` module.
+ * Turn a promise-returning function into a synchronous one. Only works if the function uses
+ * `.then` rather than `async`/`await`, and doesn't use timers/the event loop.
+ * @param name the name of the function from the `./git` module
+ * @param args args that will be passed directly to the function
+ */
+export const git_call_sync = (name: keyof typeof git, args: any[]) => {
+  Object.assign(Promise, SyncPromise)
+  const operation: (...args: any[]) => Promise<any> = git[name]
+  let result
+  operation(...args).then(r => (result = r))
+  return result
+}
