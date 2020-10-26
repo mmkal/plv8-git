@@ -345,7 +345,7 @@ where id = 2
 ```
 
 ```sql
-select git_log(git, depth := 2)
+select git_log(git, depth := 1)
 from test_table
 where id = 2
 ```
@@ -363,22 +363,6 @@ where id = 2
           "field": "text",
           "new": "a new value set by admin",
           "old": "original value set by alice"
-        }
-      ]
-    },
-    {
-      "message": "some custom message\\n\\ntest_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
-      "author": "Alice (alice@gmail.com)",
-      "timestamp": "2000-12-25T12:00:00.000Z",
-      "oid": "[oid]",
-      "changes": [
-        {
-          "field": "id",
-          "new": 2
-        },
-        {
-          "field": "text",
-          "new": "original value set by alice"
         }
       ]
     }
@@ -571,7 +555,7 @@ At its core, this library bundles [isomorphic-git](https://npmjs.com/package/iso
 
 Since plv8 triggers need to return values synchronously, but isomorphic-git uses promises extensively, a shim of the global `Promise` object was created called [`SyncPromise`](./src/sync-promise.ts). This has the same API as `Promise`, but its callbacks are executed immediately.
 
-To avoid the event-loop, all async-await code in isomorphic-git is transformed to `.then`, `.catch` etc. by [babel-plugin-transform-async-to-promises](https://npmjs.com/package/babel-plugin-transform-async-to-promises). `async-lock`, which is a dependency of isomorphic-git, is also [shimmed](./scripts/async-lock-shim.js) to bypass its locking mechanism which relies on timers - it's not necessary anyway, since all git operations take place on an ephemeral, in-memory, synchronous filesystem.
+To avoid the event-loop, all async-await code in isomorphic-git is transformed to `.then`, `.catch` etc. by [babel-plugin-transform-async-to-promises](https://npmjs.com/package/babel-plugin-transform-async-to-promises). `async-lock`, which is a dependency of isomorphic-git, is also [shimmed](./webpack/async-lock-shim.js) to bypass its locking mechanism which relies on timers - it's not necessary anyway, since all git operations take place on an ephemeral, in-memory, synchronous filesystem.
 
 `memfs` is also shimmed before being passed to isomorphic-git to [replace its promise-based operations with sync ones](./src/fs.ts).
 

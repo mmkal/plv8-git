@@ -341,7 +341,7 @@ test('walkthrough', async () => {
   `)
 
   result = await client.one(sql`
-    select git_log(git, depth := 2)
+    select git_log(git, depth := 1)
     from test_table
     where id = 2
   `)
@@ -359,22 +359,6 @@ test('walkthrough', async () => {
               "field": "text",
               "new": "a new value set by admin",
               "old": "original value set by alice"
-            }
-          ]
-        },
-        {
-          "message": "some custom message\\n\\ntest_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
-          "author": "Alice (alice@gmail.com)",
-          "timestamp": "2000-12-25T12:00:00.000Z",
-          "oid": "[oid]",
-          "changes": [
-            {
-              "field": "id",
-              "new": 2
-            },
-            {
-              "field": "text",
-              "new": "original value set by alice"
             }
           ]
         }
