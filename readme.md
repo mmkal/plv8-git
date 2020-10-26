@@ -94,41 +94,39 @@ where id = 1
 This query will return:
 
 ```json
-[
-  {
-    "git_log": [
-      {
-        "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
-        "author": "pguser (pguser@pg.com)",
-        "timestamp": "2000-12-25T12:00:00.000Z",
-        "oid": "[oid]",
-        "changes": [
-          {
-            "field": "text",
-            "new": "updated content",
-            "old": "initial content"
-          }
-        ]
-      },
-      {
-        "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
-        "author": "pguser (pguser@pg.com)",
-        "timestamp": "2000-12-25T12:00:00.000Z",
-        "oid": "[oid]",
-        "changes": [
-          {
-            "field": "id",
-            "new": 1
-          },
-          {
-            "field": "text",
-            "new": "initial content"
-          }
-        ]
-      }
-    ]
-  }
-]
+{
+  "git_log": [
+    {
+      "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
+      "author": "pguser (pguser@pg.com)",
+      "timestamp": "2000-12-25T12:00:00.000Z",
+      "oid": "[oid]",
+      "changes": [
+        {
+          "field": "text",
+          "new": "updated content",
+          "old": "initial content"
+        }
+      ]
+    },
+    {
+      "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+      "author": "pguser (pguser@pg.com)",
+      "timestamp": "2000-12-25T12:00:00.000Z",
+      "oid": "[oid]",
+      "changes": [
+        {
+          "field": "id",
+          "new": 1
+        },
+        {
+          "field": "text",
+          "new": "initial content"
+        }
+      ]
+    }
+  ]
+}
 ```
 
 i.e. you can see the row's full history, in human- and machine-readable form, straight from the table.
@@ -140,23 +138,21 @@ select git from test_table where id = 1
 ```
 
 ```json
-[
-  {
-    "git": {
-      "/repo/.git/objects/8a/ed642bf5118b9d3c859bd4be35ecac75b6e873": "[byte array]",
-      "/repo/.git/objects/d0/ff5974b6aa52cf562bea5921840c032a860a91": "[byte array]",
-      "/repo/.git/objects/d8/4bdb34d4eeef4034d77e5403f850e35bc4a51b": "[byte array]",
-      "/repo/.git/objects/a4/16ea84421fa7e1351582da48235bac88380a33": "[byte array]",
-      "/repo/.git/objects/fb/d04e1aae9ce0b11a8946e2c9ac2619f7428a64": "[byte array]",
-      "/repo/.git/objects/a1/9a1584344c1f3783bff51524a5a4b86f2cc093": "[byte array]",
-      "/repo/.git/objects/8a/b31b5afaea56114427e1f01b81d001b079a0f5": "[byte array]",
-      "/repo/.git/refs/heads/main": "[byte array]",
-      "/repo/.git/config": "[byte array]",
-      "/repo/.git/HEAD": "[byte array]",
-      "/repo/.git/index": "[byte array]"
-    }
+{
+  "git": {
+    "/repo/.git/objects/8a/ed642bf5118b9d3c859bd4be35ecac75b6e873": "[byte array]",
+    "/repo/.git/objects/d0/ff5974b6aa52cf562bea5921840c032a860a91": "[byte array]",
+    "/repo/.git/objects/d8/4bdb34d4eeef4034d77e5403f850e35bc4a51b": "[byte array]",
+    "/repo/.git/objects/a4/16ea84421fa7e1351582da48235bac88380a33": "[byte array]",
+    "/repo/.git/objects/fb/d04e1aae9ce0b11a8946e2c9ac2619f7428a64": "[byte array]",
+    "/repo/.git/objects/a1/9a1584344c1f3783bff51524a5a4b86f2cc093": "[byte array]",
+    "/repo/.git/objects/8a/b31b5afaea56114427e1f01b81d001b079a0f5": "[byte array]",
+    "/repo/.git/refs/heads/main": "[byte array]",
+    "/repo/.git/config": "[byte array]",
+    "/repo/.git/HEAD": "[byte array]",
+    "/repo/.git/index": "[byte array]"
   }
-]
+}
 ```
 
 This will return a json-formatted object, with keys corresponding to file system paths, and byte-array values as contents. Write them to disk using the CLI tool provided with this package:
@@ -248,41 +244,39 @@ where identifier->>'id' = '1'
 ```
 
 ```json
-[
-  {
-    "git_log": [
-      {
-        "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
-        "author": "pguser (pguser@pg.com)",
-        "timestamp": "2000-12-25T12:00:00.000Z",
-        "oid": "[oid]",
-        "changes": [
-          {
-            "field": "text",
-            "new": "updated content",
-            "old": "initial content"
-          }
-        ]
-      },
-      {
-        "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
-        "author": "pguser (pguser@pg.com)",
-        "timestamp": "2000-12-25T12:00:00.000Z",
-        "oid": "[oid]",
-        "changes": [
-          {
-            "field": "id",
-            "new": 1
-          },
-          {
-            "field": "text",
-            "new": "initial content"
-          }
-        ]
-      }
-    ]
-  }
-]
+{
+  "git_log": [
+    {
+      "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
+      "author": "pguser (pguser@pg.com)",
+      "timestamp": "2000-12-25T12:00:00.000Z",
+      "oid": "[oid]",
+      "changes": [
+        {
+          "field": "text",
+          "new": "updated content",
+          "old": "initial content"
+        }
+      ]
+    },
+    {
+      "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+      "author": "pguser (pguser@pg.com)",
+      "timestamp": "2000-12-25T12:00:00.000Z",
+      "oid": "[oid]",
+      "changes": [
+        {
+          "field": "id",
+          "new": 1
+        },
+        {
+          "field": "text",
+          "new": "initial content"
+        }
+      ]
+    }
+  ]
+}
 ```
 
 In this example, `deleted_history` is generic enough that it could be the "history" table for several other relations, since it uses columns `schemaname` and `tablename`, and `identifier` as the flexible `JSONB` data type to allow for different types of primary key. This avoids the overhead of needing a new `_history` table for every relation created - all the data, including history, is captured in the `git` column. The `identifier` column is only used for lookups.
@@ -311,28 +305,26 @@ where id = 2
 ```
 
 ```json
-[
-  {
-    "git_log": [
-      {
-        "message": "some custom message\\n\\ntest_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
-        "author": "Alice (alice@gmail.com)",
-        "timestamp": "2000-12-25T12:00:00.000Z",
-        "oid": "[oid]",
-        "changes": [
-          {
-            "field": "id",
-            "new": 2
-          },
-          {
-            "field": "text",
-            "new": "original value set by alice"
-          }
-        ]
-      }
-    ]
-  }
-]
+{
+  "git_log": [
+    {
+      "message": "some custom message\\n\\ntest_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+      "author": "Alice (alice@gmail.com)",
+      "timestamp": "2000-12-25T12:00:00.000Z",
+      "oid": "[oid]",
+      "changes": [
+        {
+          "field": "id",
+          "new": 2
+        },
+        {
+          "field": "text",
+          "new": "original value set by alice"
+        }
+      ]
+    }
+  ]
+}
 ```
 
 `git_log` also accepts a `depth` parameter to limit the amount of history that is fetched:
@@ -351,41 +343,39 @@ where id = 2
 ```
 
 ```json
-[
-  {
-    "git_log": [
-      {
-        "message": "Changed because the previous value was out-of-date\\n\\ntest_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
-        "author": "pguser (pguser@pg.com)",
-        "timestamp": "2000-12-25T12:00:00.000Z",
-        "oid": "[oid]",
-        "changes": [
-          {
-            "field": "text",
-            "new": "a new value set by admin",
-            "old": "original value set by alice"
-          }
-        ]
-      },
-      {
-        "message": "some custom message\\n\\ntest_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
-        "author": "Alice (alice@gmail.com)",
-        "timestamp": "2000-12-25T12:00:00.000Z",
-        "oid": "[oid]",
-        "changes": [
-          {
-            "field": "id",
-            "new": 2
-          },
-          {
-            "field": "text",
-            "new": "original value set by alice"
-          }
-        ]
-      }
-    ]
-  }
-]
+{
+  "git_log": [
+    {
+      "message": "Changed because the previous value was out-of-date\\n\\ntest_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
+      "author": "pguser (pguser@pg.com)",
+      "timestamp": "2000-12-25T12:00:00.000Z",
+      "oid": "[oid]",
+      "changes": [
+        {
+          "field": "text",
+          "new": "a new value set by admin",
+          "old": "original value set by alice"
+        }
+      ]
+    },
+    {
+      "message": "some custom message\\n\\ntest_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+      "author": "Alice (alice@gmail.com)",
+      "timestamp": "2000-12-25T12:00:00.000Z",
+      "oid": "[oid]",
+      "changes": [
+        {
+          "field": "id",
+          "new": 2
+        },
+        {
+          "field": "text",
+          "new": "original value set by alice"
+        }
+      ]
+    }
+  ]
+}
 ```
 
 By setting `depth := 1`, only the most recent change is returned.
@@ -403,14 +393,12 @@ where id = 2
 ```
 
 ```json
-[
-  {
-    "git_resolve": {
-      "id": 2,
-      "text": "original value set by alice"
-    }
+{
+  "git_resolve": {
+    "id": 2,
+    "text": "original value set by alice"
   }
-]
+}
 ```
 
 This can be used in an update query to revert a change:

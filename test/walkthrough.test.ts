@@ -83,7 +83,7 @@ test('walkthrough', async () => {
 
   // There's still just a single row in the `test_table` table, but the full history of it is tracked in the `git` column. The `git_log` function can be used to access the change history:
 
-  result = await client.many(sql`
+  result = await client.one(sql`
     select git_log(git)
     from test_table
     where id = 1
@@ -92,69 +92,65 @@ test('walkthrough', async () => {
   // This query will return:
 
   expect(result).toMatchInlineSnapshot(`
-    [
-      {
-        "git_log": [
-          {
-            "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
-            "author": "pguser (pguser@pg.com)",
-            "timestamp": "2000-12-25T12:00:00.000Z",
-            "oid": "[oid]",
-            "changes": [
-              {
-                "field": "text",
-                "new": "updated content",
-                "old": "initial content"
-              }
-            ]
-          },
-          {
-            "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
-            "author": "pguser (pguser@pg.com)",
-            "timestamp": "2000-12-25T12:00:00.000Z",
-            "oid": "[oid]",
-            "changes": [
-              {
-                "field": "id",
-                "new": 1
-              },
-              {
-                "field": "text",
-                "new": "initial content"
-              }
-            ]
-          }
-        ]
-      }
-    ]
+    {
+      "git_log": [
+        {
+          "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
+          "author": "pguser (pguser@pg.com)",
+          "timestamp": "2000-12-25T12:00:00.000Z",
+          "oid": "[oid]",
+          "changes": [
+            {
+              "field": "text",
+              "new": "updated content",
+              "old": "initial content"
+            }
+          ]
+        },
+        {
+          "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+          "author": "pguser (pguser@pg.com)",
+          "timestamp": "2000-12-25T12:00:00.000Z",
+          "oid": "[oid]",
+          "changes": [
+            {
+              "field": "id",
+              "new": 1
+            },
+            {
+              "field": "text",
+              "new": "initial content"
+            }
+          ]
+        }
+      ]
+    }
   `)
 
   // i.e. you can see the row's full history, in human- and machine-readable form, straight from the table.
 
   // To use existing git clients to get rich visual diffs, etc., you can simply pull the `git` field for a given row, and convert it into real files:
 
-  result = await client.many(sql`
+  result = await client.one(sql`
     select git from test_table where id = 1
   `)
 
   expect(result).toMatchInlineSnapshot(`
-    [
-      {
-        "git": {
-          "/repo/.git/objects/8a/ed642bf5118b9d3c859bd4be35ecac75b6e873": "[byte array]",
-          "/repo/.git/objects/d0/ff5974b6aa52cf562bea5921840c032a860a91": "[byte array]",
-          "/repo/.git/objects/d8/4bdb34d4eeef4034d77e5403f850e35bc4a51b": "[byte array]",
-          "/repo/.git/objects/a4/16ea84421fa7e1351582da48235bac88380a33": "[byte array]",
-          "/repo/.git/objects/fb/d04e1aae9ce0b11a8946e2c9ac2619f7428a64": "[byte array]",
-          "/repo/.git/objects/a1/9a1584344c1f3783bff51524a5a4b86f2cc093": "[byte array]",
-          "/repo/.git/objects/8a/b31b5afaea56114427e1f01b81d001b079a0f5": "[byte array]",
-          "/repo/.git/refs/heads/main": "[byte array]",
-          "/repo/.git/config": "[byte array]",
-          "/repo/.git/HEAD": "[byte array]",
-          "/repo/.git/index": "[byte array]"
-        }
+    {
+      "git": {
+        "/repo/.git/objects/8a/ed642bf5118b9d3c859bd4be35ecac75b6e873": "[byte array]",
+        "/repo/.git/objects/d0/ff5974b6aa52cf562bea5921840c032a860a91": "[byte array]",
+        "/repo/.git/objects/d8/4bdb34d4eeef4034d77e5403f850e35bc4a51b": "[byte array]",
+        "/repo/.git/objects/a4/16ea84421fa7e1351582da48235bac88380a33": "[byte array]",
+        "/repo/.git/objects/fb/d04e1aae9ce0b11a8946e2c9ac2619f7428a64": "[byte array]",
+        "/repo/.git/objects/a1/9a1584344c1f3783bff51524a5a4b86f2cc093": "[byte array]",
+        "/repo/.git/objects/8a/b31b5afaea56114427e1f01b81d001b079a0f5": "[byte array]",
+        "/repo/.git/refs/heads/main": "[byte array]",
+        "/repo/.git/config": "[byte array]",
+        "/repo/.git/HEAD": "[byte array]",
+        "/repo/.git/index": "[byte array]"
       }
-    ]
+    }
   `)
 
   // This will return a json-formatted object, with keys corresponding to file system paths, and byte-array values as contents. Write them to disk using the CLI tool provided with this package:
@@ -239,48 +235,46 @@ test('walkthrough', async () => {
 
   // You can use `git_log` again to get a readable history:
 
-  result = await client.any(sql`
+  result = await client.one(sql`
     select git_log(git)
     from deleted_history
     where identifier->>'id' = '1'
   `)
 
   expect(result).toMatchInlineSnapshot(`
-    [
-      {
-        "git_log": [
-          {
-            "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
-            "author": "pguser (pguser@pg.com)",
-            "timestamp": "2000-12-25T12:00:00.000Z",
-            "oid": "[oid]",
-            "changes": [
-              {
-                "field": "text",
-                "new": "updated content",
-                "old": "initial content"
-              }
-            ]
-          },
-          {
-            "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
-            "author": "pguser (pguser@pg.com)",
-            "timestamp": "2000-12-25T12:00:00.000Z",
-            "oid": "[oid]",
-            "changes": [
-              {
-                "field": "id",
-                "new": 1
-              },
-              {
-                "field": "text",
-                "new": "initial content"
-              }
-            ]
-          }
-        ]
-      }
-    ]
+    {
+      "git_log": [
+        {
+          "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
+          "author": "pguser (pguser@pg.com)",
+          "timestamp": "2000-12-25T12:00:00.000Z",
+          "oid": "[oid]",
+          "changes": [
+            {
+              "field": "text",
+              "new": "updated content",
+              "old": "initial content"
+            }
+          ]
+        },
+        {
+          "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+          "author": "pguser (pguser@pg.com)",
+          "timestamp": "2000-12-25T12:00:00.000Z",
+          "oid": "[oid]",
+          "changes": [
+            {
+              "field": "id",
+              "new": 1
+            },
+            {
+              "field": "text",
+              "new": "initial content"
+            }
+          ]
+        }
+      ]
+    }
   `)
 
   // In this example, `deleted_history` is generic enough that it could be the "history" table for several other relations, since it uses columns `schemaname` and `tablename`, and `identifier` as the flexible `JSONB` data type to allow for different types of primary key. This avoids the overhead of needing a new `_history` table for every relation created - all the data, including history, is captured in the `git` column. The `identifier` column is only used for lookups.
@@ -302,35 +296,33 @@ test('walkthrough', async () => {
     )
   `)
 
-  result = await client.many(sql`
+  result = await client.one(sql`
     select git_log(git)
     from test_table
     where id = 2
   `)
 
   expect(result).toMatchInlineSnapshot(`
-    [
-      {
-        "git_log": [
-          {
-            "message": "some custom message\\n\\ntest_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
-            "author": "Alice (alice@gmail.com)",
-            "timestamp": "2000-12-25T12:00:00.000Z",
-            "oid": "[oid]",
-            "changes": [
-              {
-                "field": "id",
-                "new": 2
-              },
-              {
-                "field": "text",
-                "new": "original value set by alice"
-              }
-            ]
-          }
-        ]
-      }
-    ]
+    {
+      "git_log": [
+        {
+          "message": "some custom message\\n\\ntest_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+          "author": "Alice (alice@gmail.com)",
+          "timestamp": "2000-12-25T12:00:00.000Z",
+          "oid": "[oid]",
+          "changes": [
+            {
+              "field": "id",
+              "new": 2
+            },
+            {
+              "field": "text",
+              "new": "original value set by alice"
+            }
+          ]
+        }
+      ]
+    }
   `)
 
   // `git_log` also accepts a `depth` parameter to limit the amount of history that is fetched:
@@ -342,48 +334,46 @@ test('walkthrough', async () => {
     where id = 2
   `)
 
-  result = await client.many(sql`
+  result = await client.one(sql`
     select git_log(git, depth := 2)
     from test_table
     where id = 2
   `)
 
   expect(result).toMatchInlineSnapshot(`
-    [
-      {
-        "git_log": [
-          {
-            "message": "Changed because the previous value was out-of-date\\n\\ntest_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
-            "author": "pguser (pguser@pg.com)",
-            "timestamp": "2000-12-25T12:00:00.000Z",
-            "oid": "[oid]",
-            "changes": [
-              {
-                "field": "text",
-                "new": "a new value set by admin",
-                "old": "original value set by alice"
-              }
-            ]
-          },
-          {
-            "message": "some custom message\\n\\ntest_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
-            "author": "Alice (alice@gmail.com)",
-            "timestamp": "2000-12-25T12:00:00.000Z",
-            "oid": "[oid]",
-            "changes": [
-              {
-                "field": "id",
-                "new": 2
-              },
-              {
-                "field": "text",
-                "new": "original value set by alice"
-              }
-            ]
-          }
-        ]
-      }
-    ]
+    {
+      "git_log": [
+        {
+          "message": "Changed because the previous value was out-of-date\\n\\ntest_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
+          "author": "pguser (pguser@pg.com)",
+          "timestamp": "2000-12-25T12:00:00.000Z",
+          "oid": "[oid]",
+          "changes": [
+            {
+              "field": "text",
+              "new": "a new value set by admin",
+              "old": "original value set by alice"
+            }
+          ]
+        },
+        {
+          "message": "some custom message\\n\\ntest_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+          "author": "Alice (alice@gmail.com)",
+          "timestamp": "2000-12-25T12:00:00.000Z",
+          "oid": "[oid]",
+          "changes": [
+            {
+              "field": "id",
+              "new": 2
+            },
+            {
+              "field": "text",
+              "new": "original value set by alice"
+            }
+          ]
+        }
+      ]
+    }
   `)
 
   // By setting `depth := 1`, only the most recent change is returned.
@@ -394,21 +384,19 @@ test('walkthrough', async () => {
 
   // Combine it with `git_log` to get a previous version - the below query uses `->1->'oid'` to get the oid from the second item in the log array:
 
-  result = await client.many(sql`
+  result = await client.one(sql`
     select git_resolve(git, git_log(git)->1->>'oid')
     from test_table
     where id = 2
   `)
 
   expect(result).toMatchInlineSnapshot(`
-    [
-      {
-        "git_resolve": {
-          "id": 2,
-          "text": "original value set by alice"
-        }
+    {
+      "git_resolve": {
+        "id": 2,
+        "text": "original value set by alice"
       }
-    ]
+    }
   `)
 
   // This can be used in an update query to revert a change:
