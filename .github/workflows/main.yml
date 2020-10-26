@@ -9,7 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: clkao/postgres-plv8:12-2
+        # can't update to 12 until https://github.com/clkao/docker-postgres-plv8/issues/36 is fixed
+        image: clkao/postgres-plv8:11-2
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
