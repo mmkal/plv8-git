@@ -571,8 +571,7 @@ At its core, this library bundles [isomorphic-git](https://npmjs.com/package/iso
 
 Since plv8 triggers need to return values synchronously, but isomorphic-git uses promises extensively, a shim of the global `Promise` object was created called [`SyncPromise`](./src/sync-promise.ts). This has the same API as `Promise`, but its callbacks are executed immediately.
 
-To avoid the event-loop, all async-await code in isomorphic-git is transformed to `.then`, `.catch` etc. by [babel-plugin-transform-async-to-promises](https://npmjs.com/package/babel-plugin-transf
-orm-async-to-promises). `async-lock`, which is a dependency of isomorphic-git, is also [shimmed](./scripts/async-lock-shim.js) to bypass its locking mechanism which relies on timers - it's not necessary anyway, since all git operations take place on an ephemeral, in-memory, synchronous filesystem.
+To avoid the event-loop, all async-await code in isomorphic-git is transformed to `.then`, `.catch` etc. by [babel-plugin-transform-async-to-promises](https://npmjs.com/package/babel-plugin-transform-async-to-promises). `async-lock`, which is a dependency of isomorphic-git, is also [shimmed](./scripts/async-lock-shim.js) to bypass its locking mechanism which relies on timers - it's not necessary anyway, since all git operations take place on an ephemeral, in-memory, synchronous filesystem.
 
 `memfs` is also shimmed before being passed to isomorphic-git to [replace its promise-based operations with sync ones](./src/fs.ts).
 
