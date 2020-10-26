@@ -2,7 +2,6 @@ import * as memfs from 'memfs'
 import * as path from 'path'
 import * as git from 'isomorphic-git'
 import * as serializer from './serializer'
-import {SyncPromise} from './sync-promise'
 import {PG_Vars} from './pg-types'
 import {setupMemfs} from './fs'
 
@@ -31,7 +30,7 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
 
   const commitMessage = `${pg.TG_NAME}: ${pg.TG_WHEN} ${pg.TG_OP} ${pg.TG_LEVEL} on ${pg.TG_TABLE_SCHEMA}.${pg.TG_TABLE_NAME}`.trim()
 
-  return SyncPromise.resolve()
+  return Promise.resolve()
     .then(setupGitFolder)
     .then(() => {
       if (!NEW) return
@@ -42,7 +41,7 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
           const filepath = `${repo.dir}/${k}`
           fs.writeFileSync(filepath, content, {encoding: 'utf8'})
         })
-      return SyncPromise.resolve()
+      return Promise.resolve()
         .then(() => git.add({...repo, filepath: '.'}))
         .then(() =>
           git.commit({
@@ -52,7 +51,7 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
           }),
         )
         .then(commit =>
-          SyncPromise.all(
+          Promise.all(
             (NEW?.git?.tags || []).map((tag: string) => {
               return git.tag({...repo, ref: tag, object: commit})
             }),
@@ -88,11 +87,11 @@ export const gitLog = (gitRepoJson: object, depth?: number) => {
   const {fs} = setupMemfs()
   const repo = {fs, dir: '/repo'}
 
-  return SyncPromise.resolve()
+  return Promise.resolve()
     .then(() => writeGitFiles(gitRepoJson, fs))
     .then(() => git.log({...repo, depth}))
     .then(log => {
-      return SyncPromise.all(
+      return Promise.all(
         log.map(e => {
           return git
             .walk({
@@ -100,7 +99,7 @@ export const gitLog = (gitRepoJson: object, depth?: number) => {
               trees: [e.oid, e.commit.parent[0]].filter(Boolean).map(ref => git.TREE({ref})),
               map: (filepath, entries) => {
                 const [Child, Parent] = entries || []
-                return SyncPromise.all([resolveTree(Child), Parent && resolveTree(Parent)]).then(
+                return Promise.all([resolveTree(Child), Parent && resolveTree(Parent)]).then(
                   ([ChildInfo, ParentInfo]): WalkResult => ({filepath, ChildInfo, ParentInfo} as WalkResult),
                 )
               },
@@ -134,7 +133,7 @@ export const gitResolve = (gitRepoJson: object, ref: string) => {
   const {fs} = setupMemfs()
   const repo = {fs, dir: '/repo'}
 
-  return SyncPromise.resolve()
+  return Promise.resolve()
     .then(() => writeGitFiles(gitRepoJson, fs))
     .then(() =>
       git.walk({
@@ -164,5 +163,5 @@ type ResolvedTree = PromiseResult<ReturnType<typeof resolveTree>>
 /** gets the type, content and oid for a `WalkerEntry` */
 const resolveTree = (tree: git.WalkerEntry | undefined) => {
   const promises = tree && [tree.type(), tree.content().then(btos), tree.oid()]
-  return promises && SyncPromise.all(promises).then(([type, content, oid]) => ({type, content, oid}))
+  return promises && Promise.all(promises).then(([type, content, oid]) => ({type, content, oid}))
 }
