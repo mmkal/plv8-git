@@ -11,7 +11,7 @@
     {
       "depTypeList": ["devDependencies"],
       "excludePackageNames": [
-        "ismorphic-git",
+        "isomorphic-git",
         "memfs"
       ],
       "groupName": "devDependencies",
