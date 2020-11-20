@@ -20,7 +20,7 @@ export const readableJson = (o: unknown) => {
   const isByteArray = (k: string, v: unknown) => Array.isArray(v) && v.length > 0 && v.every(x => typeof x === 'number')
 
   const isGitRepoJson = (k: string, v: unknown): v is Record<string, string> =>
-    k === 'git' && v && typeof v === 'object'
+    k === 'git' && Boolean(v) && typeof v === 'object'
 
   const markers: any = {}
   const replacer = (k: string, v: unknown): any => {
