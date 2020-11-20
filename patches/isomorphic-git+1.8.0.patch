@@ -1,8 +1,8 @@
 diff --git a/node_modules/isomorphic-git/index.cjs b/node_modules/isomorphic-git/index.cjs
-index ae4d526..bceb0ff 100644
+index 62b114c..376d0be 100644
 --- a/node_modules/isomorphic-git/index.cjs
 +++ b/node_modules/isomorphic-git/index.cjs
-@@ -2935,38 +2935,69 @@ async function _readObject({
+@@ -2939,38 +2939,69 @@ async function _readObject({
      return result
    }
  
@@ -101,7 +101,7 @@ index ae4d526..bceb0ff 100644
  }
  
  class AlreadyExistsError extends BaseError {
-@@ -10337,7 +10368,8 @@ async function _log({ fs, cache, gitdir, ref, depth, since }) {
+@@ -10376,7 +10407,8 @@ async function _log({ fs, cache, gitdir, ref, depth, since }) {
    const oid = await GitRefManager.resolve({ fs, gitdir, ref });
    const tips = [await _readCommit({ fs, cache, gitdir, oid })];
  
@@ -112,10 +112,10 @@ index ae4d526..bceb0ff 100644
  
      // Stop the log if we've hit the age limit
 diff --git a/node_modules/isomorphic-git/index.js b/node_modules/isomorphic-git/index.js
-index 8335d52..a3b3231 100644
+index b6c4df5..f43d12d 100644
 --- a/node_modules/isomorphic-git/index.js
 +++ b/node_modules/isomorphic-git/index.js
-@@ -2929,38 +2929,69 @@ async function _readObject({
+@@ -2933,38 +2933,69 @@ async function _readObject({
      return result
    }
  
@@ -214,7 +214,7 @@ index 8335d52..a3b3231 100644
  }
  
  class AlreadyExistsError extends BaseError {
-@@ -10331,7 +10362,8 @@ async function _log({ fs, cache, gitdir, ref, depth, since }) {
+@@ -10370,7 +10401,8 @@ async function _log({ fs, cache, gitdir, ref, depth, since }) {
    const oid = await GitRefManager.resolve({ fs, gitdir, ref });
    const tips = [await _readCommit({ fs, cache, gitdir, oid })];
  
