@@ -2007,10 +2007,10 @@ escodegen@^1.14.1:
   optionalDependencies:
     source-map "~0.6.1"
 
-eslint-plugin-codegen@0.14.0:
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-codegen/-/eslint-plugin-codegen-0.14.0.tgz#b0cf93152174cde9efb8d75907db5cfb1ce1d3f3"
-  integrity sha512-UOWxEMLSDrylTbAEgG3EpENRy4DX935JNLsYGAfAQ9+ZbxRymdogAae9RiOIMzSJC8UGWLrswXjlRlqFVs0SHA==
+eslint-plugin-codegen@0.14.1:
+  version "0.14.1"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-codegen/-/eslint-plugin-codegen-0.14.1.tgz#c92db0c8b58fcabb3137022a77681bd37d864362"
+  integrity sha512-5aSOee8k3ey1qN/BV5UjUhH68rjDcPvBCqo6gCgIBkGg28lYz2RHNCtiyMvAHpjVX79kd0vqMNnG24x0Rfwhpw==
   dependencies:
     "@babel/core" "^7.11.6"
     "@babel/generator" "~7.11.6"
@@ -2020,7 +2020,7 @@ eslint-plugin-codegen@0.14.0:
     fp-ts "^2.1.0"
     glob "^7.1.4"
     io-ts "^2.2.4"
-    io-ts-extra "0.11.0"
+    io-ts-extra "0.11.1"
     js-yaml "^3.14.0"
     lodash "^4.17.15"
     string.prototype.matchall "^4.0.2"
@@ -2773,10 +2773,10 @@ interpret@^2.2.0:
   resolved "https://registry.yarnpkg.com/interpret/-/interpret-2.2.0.tgz#1a78a0b5965c40a5416d007ad6f50ad27c417df9"
   integrity sha512-Ju0Bz/cEia55xDwUWEa8+olFpCiQoypjnQySseKtmjNrnps3P+xfpUmGr90T7yjlVJmOtybRvPXhKMbHr+fWnw==
 
-io-ts-extra@0.11.0:
-  version "0.11.0"
-  resolved "https://registry.yarnpkg.com/io-ts-extra/-/io-ts-extra-0.11.0.tgz#05111350b8ea9a589f031562e3eeffa58243e2f6"
-  integrity sha512-WWvLv9xwy7+NtZp5ilGey3Ru8xUnmHDGlHjkh+aoPowVVVl2g4fWqCuHFVmS5rHHWxrHl7BBiq/yWpyVHTPG+A==
+io-ts-extra@0.11.1:
+  version "0.11.1"
+  resolved "https://registry.yarnpkg.com/io-ts-extra/-/io-ts-extra-0.11.1.tgz#4db8572678b1b01295dc16e398f6f2d0efe76bd4"
+  integrity sha512-D5nEL8F+Lq6h9SCNhU91BRRqa5fbvUg1kH9D1mSLFt0KcjfcZMytoRZS9BJyT/+cLbcVGIWMaPVgkjtTTBuGxQ==
   dependencies:
     fp-ts "^2.1.0"
     io-ts "^2.2.4"
@@ -5344,6 +5344,11 @@ tapable@^2.0.0:
   resolved "https://registry.yarnpkg.com/tapable/-/tapable-2.0.0.tgz#a49c3d6a8a2bb606e7db372b82904c970d537a08"
   integrity sha512-bjzn0C0RWoffnNdTzNi7rNDhs1Zlwk2tRXgk8EiHKAOX1Mag3d6T0Y5zNa7l9CJ+EoUne/0UHdwS8tMbkh9zDg==
 
+tapable@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/tapable/-/tapable-2.1.1.tgz#b01cc1902d42a7bb30514e320ce21c456f72fd3f"
+  integrity sha512-Wib1S8m2wdpLbmQz0RBEVosIyvb/ykfKXf3ZIDqvWoMg/zTNm6G/tDSuUM61J1kNCDXWJrLHGSFeMhAG+gAGpQ==
+
 terminal-link@^2.0.0:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/terminal-link/-/terminal-link-2.1.1.tgz#14a64a27ab3c0df933ea546fba55f2d078edc994"
@@ -5805,10 +5810,10 @@ webpack-sources@^2.1.1:
     source-list-map "^2.0.1"
     source-map "^0.6.1"
 
-webpack@5.7.0:
-  version "5.7.0"
-  resolved "https://registry.yarnpkg.com/webpack/-/webpack-5.7.0.tgz#bb752a5a54aa66dfd24ff5b80256e6c609bbc4cb"
-  integrity sha512-U0AshArzQX5X+L2eViVEjrE7nNLUs80BQYcPUyRnaUMT2EyZiIbXAYWL7GLx6qRu0ykxAwXytRoC1+jqWQZExw==
+webpack@5.8.0:
+  version "5.8.0"
+  resolved "https://registry.yarnpkg.com/webpack/-/webpack-5.8.0.tgz#65f00a181708279ff982c2d7338e1dd5505364c4"
+  integrity sha512-X2yosPiHip3L0TE+ylruzrOqSgEgsdGyBOGFWKYChcwlKChaw9VodZIUovG1oo7s0ss6e3ZxBMn9tXR+nkPThA==
   dependencies:
     "@types/eslint-scope" "^3.7.0"
     "@types/estree" "^0.0.45"
@@ -5830,7 +5835,7 @@ webpack@5.7.0:
     neo-async "^2.6.2"
     pkg-dir "^4.2.0"
     schema-utils "^3.0.0"
-    tapable "^2.0.0"
+    tapable "^2.1.1"
     terser-webpack-plugin "^5.0.3"
     watchpack "^2.0.0"
     webpack-sources "^2.1.1"
