@@ -2006,10 +2006,10 @@ escodegen@^1.14.1:
   optionalDependencies:
     source-map "~0.6.1"
 
-eslint-plugin-codegen@0.14.1:
-  version "0.14.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-codegen/-/eslint-plugin-codegen-0.14.1.tgz#c92db0c8b58fcabb3137022a77681bd37d864362"
-  integrity sha512-5aSOee8k3ey1qN/BV5UjUhH68rjDcPvBCqo6gCgIBkGg28lYz2RHNCtiyMvAHpjVX79kd0vqMNnG24x0Rfwhpw==
+eslint-plugin-codegen@0.14.2:
+  version "0.14.2"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-codegen/-/eslint-plugin-codegen-0.14.2.tgz#8c474f0b1b5d050930b2970c57ed2ad776114840"
+  integrity sha512-/80a/PcmyxDjDmFJnFf5z4vQbQGrvfVrF4QFSwGhRFrNsDF+uT+DKbp9/vwufGI5xXWFRp/dT2xiY11LTZmAqg==
   dependencies:
     "@babel/core" "^7.11.6"
     "@babel/generator" "~7.11.6"
@@ -2019,7 +2019,7 @@ eslint-plugin-codegen@0.14.1:
     fp-ts "^2.1.0"
     glob "^7.1.4"
     io-ts "^2.2.4"
-    io-ts-extra "0.11.1"
+    io-ts-extra "0.11.2"
     js-yaml "^3.14.0"
     lodash "^4.17.15"
     string.prototype.matchall "^4.0.2"
@@ -2765,10 +2765,10 @@ interpret@^2.2.0:
   resolved "https://registry.yarnpkg.com/interpret/-/interpret-2.2.0.tgz#1a78a0b5965c40a5416d007ad6f50ad27c417df9"
   integrity sha512-Ju0Bz/cEia55xDwUWEa8+olFpCiQoypjnQySseKtmjNrnps3P+xfpUmGr90T7yjlVJmOtybRvPXhKMbHr+fWnw==
 
-io-ts-extra@0.11.1:
-  version "0.11.1"
-  resolved "https://registry.yarnpkg.com/io-ts-extra/-/io-ts-extra-0.11.1.tgz#4db8572678b1b01295dc16e398f6f2d0efe76bd4"
-  integrity sha512-D5nEL8F+Lq6h9SCNhU91BRRqa5fbvUg1kH9D1mSLFt0KcjfcZMytoRZS9BJyT/+cLbcVGIWMaPVgkjtTTBuGxQ==
+io-ts-extra@0.11.2:
+  version "0.11.2"
+  resolved "https://registry.yarnpkg.com/io-ts-extra/-/io-ts-extra-0.11.2.tgz#c758f1c6eae99a8454fdde97eaa14590a5d8d0a1"
+  integrity sha512-a9OdDRtyJA5Ln+1CXs5SLYMgtU5ruj27tAGRVy00/9QjJhchiHJ1HwpNLZ0S0o6B/eswefJDKzvv49VhGl8EyQ==
   dependencies:
     fp-ts "^2.1.0"
     io-ts "^2.2.4"
