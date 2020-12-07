@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "@babel/core": "7.12.9",
-    "@typescript-eslint/parser": "4.9.0",
+    "@typescript-eslint/parser": "4.9.1",
     "assert": "2.0.0",
     "babel-loader": "8.2.2",
     "babel-plugin-transform-async-to-promises": "0.8.15",
