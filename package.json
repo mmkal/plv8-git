@@ -50,7 +50,7 @@
     "@rushstack/ts-command-line": "^4.7.3"
   },
   "devDependencies": {
-    "@babel/core": "7.12.9",
+    "@babel/core": "7.12.10",
     "@typescript-eslint/parser": "4.9.1",
     "assert": "2.0.0",
     "babel-loader": "8.2.2",
