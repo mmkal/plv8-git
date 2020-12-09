@@ -62,21 +62,12 @@
     jsesc "^2.5.1"
     source-map "^0.5.0"
 
-"@babel/generator@^7.12.5":
+"@babel/generator@^7.12.5", "@babel/generator@~7.12.0":
   version "7.12.5"
   resolved "https://registry.yarnpkg.com/@babel/generator/-/generator-7.12.5.tgz#a2c50de5c8b6d708ab95be5e6053936c1884a4de"
   integrity sha512-m16TQQJ8hPt7E+OS/XVQg/7U184MLXtvuGbCdA7na61vha+ImkyyNM/9DDA0unYCVZn3ZOhng+qz48/KBOT96A==
   dependencies:
     "@babel/types" "^7.12.5"
-    jsesc "^2.5.1"
-    source-map "^0.5.0"
-
-"@babel/generator@~7.11.6":
-  version "7.11.6"
-  resolved "https://registry.yarnpkg.com/@babel/generator/-/generator-7.11.6.tgz#b868900f81b163b4d464ea24545c61cbac4dc620"
-  integrity sha512-DWtQ1PV3r+cLbySoHrwn9RWEgKMBLLma4OBQloPRyDYvc5msJM9kvTLo1YnlJd1P/ZuKbdli3ijr5q3FvAF3uA==
-  dependencies:
-    "@babel/types" "^7.11.5"
     jsesc "^2.5.1"
     source-map "^0.5.0"
 
@@ -335,7 +326,7 @@
     globals "^11.1.0"
     lodash "^4.17.19"
 
-"@babel/types@^7.0.0", "@babel/types@^7.10.4", "@babel/types@^7.11.0", "@babel/types@^7.11.5", "@babel/types@^7.12.1", "@babel/types@^7.3.0", "@babel/types@^7.3.3":
+"@babel/types@^7.0.0", "@babel/types@^7.10.4", "@babel/types@^7.11.0", "@babel/types@^7.12.1", "@babel/types@^7.3.0", "@babel/types@^7.3.3":
   version "7.12.1"
   resolved "https://registry.yarnpkg.com/@babel/types/-/types-7.12.1.tgz#e109d9ab99a8de735be287ee3d6a9947a190c4ae"
   integrity sha512-BzSY3NJBKM4kyatSOWh3D/JJ2O3CVzBybHWxtgxnggaxEuaSTTDqeiSb/xk9lrkw2Tbqyivw5ZU4rT+EfznQsA==
@@ -2011,20 +2002,20 @@ escodegen@^1.14.1:
   optionalDependencies:
     source-map "~0.6.1"
 
-eslint-plugin-codegen@0.14.3:
-  version "0.14.3"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-codegen/-/eslint-plugin-codegen-0.14.3.tgz#0c780a063419a2abed69cb45a832d7498c2aa93d"
-  integrity sha512-8ami8f9rkLLo++J1W5kwrgUDSeUC2/98CaQCafEoSw9X1oFDwa1b1RRNa2osbIcV+Y5XgIPdJPBISbPOuW3ynw==
+eslint-plugin-codegen@0.14.4:
+  version "0.14.4"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-codegen/-/eslint-plugin-codegen-0.14.4.tgz#f4ca136e5390aa0227799903369d41ae37f88d32"
+  integrity sha512-MoPXnbREvdqCadI9/vB5sjHq8DVCC1IOPKhUAOLlbHBrCahTusamsHJAzoOFZEoFwpvX7oZC4EwGEdgSZdfEaA==
   dependencies:
     "@babel/core" "^7.11.6"
-    "@babel/generator" "~7.11.6"
+    "@babel/generator" "~7.12.0"
     "@babel/parser" "^7.11.5"
     "@babel/traverse" "^7.11.5"
     expect "^26.0.0"
     fp-ts "^2.1.0"
     glob "^7.1.4"
     io-ts "^2.2.4"
-    io-ts-extra "0.11.3"
+    io-ts-extra "0.11.4"
     js-yaml "^3.14.0"
     lodash "^4.17.15"
     string.prototype.matchall "^4.0.2"
@@ -2786,10 +2777,10 @@ interpret@^2.2.0:
   resolved "https://registry.yarnpkg.com/interpret/-/interpret-2.2.0.tgz#1a78a0b5965c40a5416d007ad6f50ad27c417df9"
   integrity sha512-Ju0Bz/cEia55xDwUWEa8+olFpCiQoypjnQySseKtmjNrnps3P+xfpUmGr90T7yjlVJmOtybRvPXhKMbHr+fWnw==
 
-io-ts-extra@0.11.3:
-  version "0.11.3"
-  resolved "https://registry.yarnpkg.com/io-ts-extra/-/io-ts-extra-0.11.3.tgz#2ed1a94edf2265cfe54d83cc9c31a48493097b2a"
-  integrity sha512-HwLnrdqkrUVa08SBaTwTMbUz+bwdS2HfIgxydxJM4mQz8LMHVgKEQC53vmfKR6QaWMM4AuH9qAwrns0rEaaOVA==
+io-ts-extra@0.11.4:
+  version "0.11.4"
+  resolved "https://registry.yarnpkg.com/io-ts-extra/-/io-ts-extra-0.11.4.tgz#4885fb646017dd619fa5dfc799fcd0e44599aaf0"
+  integrity sha512-XrvZluS4RPnj0/w8i0Vl9L9m7ajF1Spx039b8exDybF6z9speQJleBP0ujmJ3uu3eelpredYywlec2ZF9ZtH7g==
   dependencies:
     fp-ts "^2.1.0"
     io-ts "^2.2.4"
