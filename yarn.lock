@@ -4974,10 +4974,10 @@ slice-ansi@^4.0.0:
     astral-regex "^2.0.0"
     is-fullwidth-code-point "^3.0.0"
 
-slonik@23.5.3:
-  version "23.5.3"
-  resolved "https://registry.yarnpkg.com/slonik/-/slonik-23.5.3.tgz#beab9063a6944f7b5d5504f3d92981f070c50683"
-  integrity sha512-pJVKJVgWC5zXTfvhi5y2zrRpqICF+tM6CbwnyHNl7CTkBoalMQITXujOhfWPpAmB3OvnSjUKTnIjHOGRkHiLWA==
+slonik@23.5.4:
+  version "23.5.4"
+  resolved "https://registry.yarnpkg.com/slonik/-/slonik-23.5.4.tgz#7e2a28ca12b03a760b51e6aa3d2a98efa3edc314"
+  integrity sha512-PSFti+SEXfbmkj/w3N3Apg09u/RJJ3MQTUu4gKVTgf9P91kryWFeQWQwkOaSP2TatmZeL8nucGa8/kIYIF/VtA==
   dependencies:
     concat-stream "^2.0.0"
     delay "^4.4.0"
