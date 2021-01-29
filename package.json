@@ -68,7 +68,7 @@
     "process": "0.11.10",
     "slonik": "23.5.4",
     "stream-browserify": "3.0.0",
-    "ts-jest": "26.4.4",
+    "ts-jest": "26.5.0",
     "ts-loader": "8.0.14",
     "ts-node": "9.1.1",
     "typescript": "4.1.3",
