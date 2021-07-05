@@ -3216,10 +3216,10 @@ isobject@^3.0.0, isobject@^3.0.1:
   resolved "https://registry.yarnpkg.com/isobject/-/isobject-3.0.1.tgz#4e431e92b11a9731636aa1f9c8d1ccbcfdab78df"
   integrity sha1-TkMekrEalzFjaqH5yNHMvP2reN8=
 
-isomorphic-git@1.8.0:
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/isomorphic-git/-/isomorphic-git-1.8.0.tgz#50440650a64706a321cbea1af955c1cf1110b238"
-  integrity sha512-TWJvQh+++eFrEG0IFS/jLhMwsBoCOX1/Dsw9q8no59Mp1K0jEjSHXFWv2P04PwkxcIpePkXVBI5YFcFT2nkuQg==
+isomorphic-git@1.9.0:
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/isomorphic-git/-/isomorphic-git-1.9.0.tgz#59d416ff91573baedc4029461971781d06866024"
+  integrity sha512-IDWr0l7rnkIMtwuHoKqOEsEUTivbPRdHmLQPvuFGl18oToZdC3TRRKArcW+0PCsu0iiwcopFvu3HTM8Th/SJBg==
   dependencies:
     async-lock "^1.1.0"
     clean-git-ref "^2.0.1"
