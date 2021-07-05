@@ -1,0 +1,54 @@
+diff --git a/node_modules/isomorphic-git/index.cjs b/node_modules/isomorphic-git/index.cjs
+index b828684..16d095e 100644
+--- a/node_modules/isomorphic-git/index.cjs
++++ b/node_modules/isomorphic-git/index.cjs
+@@ -10632,6 +10632,11 @@ async function _log({
+       commits.push(commit);
+     }
+ 
++    // https://github.com/isomorphic-git/isomorphic-git/pull/1388
++    function endCommit(commit) {
++      if (isOk && filepath) commits.push(commit);
++    }
++
+     // Stop the loop if we have enough commits now.
+     if (depth !== undefined && commits.length === depth) {
+       endCommit(commit);
+@@ -10659,10 +10664,6 @@ async function _log({
+     tips.sort((a, b) => compareAge(a.commit, b.commit));
+   }
+   return commits
+-
+-  function endCommit(commit) {
+-    if (isOk && filepath) commits.push(commit);
+-  }
+ }
+ 
+ // @ts-check
+diff --git a/node_modules/isomorphic-git/index.js b/node_modules/isomorphic-git/index.js
+index da9be93..15ec222 100644
+--- a/node_modules/isomorphic-git/index.js
++++ b/node_modules/isomorphic-git/index.js
+@@ -10626,6 +10626,11 @@ async function _log({
+       commits.push(commit);
+     }
+     
++    // https://github.com/isomorphic-git/isomorphic-git/pull/1388
++    function endCommit(commit) {
++      if (isOk && filepath) commits.push(commit);
++    }
++
+     // Stop the loop if we have enough commits now.
+     if (depth !== undefined && commits.length === depth) {
+       endCommit(commit);
+@@ -10653,10 +10658,6 @@ async function _log({
+     tips.sort((a, b) => compareAge(a.commit, b.commit));
+   }
+   return commits
+-
+-  function endCommit(commit) {
+-    if (isOk && filepath) commits.push(commit);
+-  }
+ }
+ 
+ // @ts-check

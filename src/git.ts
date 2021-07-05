@@ -161,7 +161,7 @@ const btos = (obj: any) => Buffer.from(Object.values<number>(obj || {})).toStrin
 type PromiseResult<P> = P extends Promise<infer X> ? X : never
 type ResolvedTree = PromiseResult<ReturnType<typeof resolveTree>>
 /** gets the type, content and oid for a `WalkerEntry` */
-const resolveTree = (tree: git.WalkerEntry | undefined) => {
+const resolveTree = (tree: git.WalkerEntry | null) => {
   const promises = tree && [tree.type(), tree.content().then(btos), tree.oid()]
   return promises && Promise.all(promises).then(([type, content, oid]) => ({type, content, oid}))
 }
