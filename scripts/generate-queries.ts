@@ -8,7 +8,9 @@ export const getQuery = (js: string) => {
   if (js.includes(quotes)) {
     throw new Error(`Failed to generate quote markers to properly escape js code`)
   }
-
+  if (!js.includes('https://github.com/isomorphic-git/isomorphic-git/pull/1388')) {
+    throw new Error(`Patch hasn't been applied. Run 'yarn prepare'`)
+  }
   return `
     create or replace function git_call_sync(name text, args json) returns json as
     ${quotes}
