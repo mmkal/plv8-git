@@ -2,7 +2,7 @@ version: '3'
 services:
   postgres:
     # can't update to 12 until https://github.com/clkao/docker-postgres-plv8/issues/36 is fixed
-    image: clkao/postgres-plv8:11-2
+    image: clkao/postgres-plv8:12-2
     restart: always
     ports:
     - "5435:5432"
