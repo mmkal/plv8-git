@@ -54,6 +54,15 @@ psql -c "
 psql -f node_modules/plv8-git/queries/create-git-functions.sql
 ```
 
+Or from javascript:
+
+```js
+const sqlClient = getSqlClient()
+
+const sql = require('plv8-git/queries').getGitFunctionsSql()
+await sqlClient.runRawSql(sql)
+```
+
 Note: for `create extension plv8` to work the plv8.control file must exist on your database system. You can use [the postgres-plv8 docker image](https://github.com/clkao/docker-postgres-plv8/tree/master/11-2) for development (or production, if you really want to deploy a containerised database to production). Amazon RDS instances [have the extension available](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html), as does [Azure Postgres 11](https://docs.microsoft.com/en-us/azure/postgresql/concepts-extensions#postgres-11-extensions).
 
 This will have created three postgres functions: `git_track`, `git_log` and `git_resolve`.
