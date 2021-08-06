@@ -85,9 +85,21 @@ export const getQuery = (js: string) => {
 
 export const write = (filesystem = fs) => {
   const sql = getQuery(filesystem.readFileSync(require.resolve('..')).toString())
-  const destPath = path.join(__dirname, '../queries/create-git-functions.sql')
-  filesystem.mkdirSync(path.dirname(destPath), {recursive: true})
-  filesystem.writeFileSync(destPath, sql, 'utf8')
+  const queriesDir = path.join(__dirname, '../queries')
+
+  filesystem.mkdirSync(queriesDir, {recursive: true})
+  filesystem.writeFileSync(path.join(queriesDir, 'create-git-functions.sql'), sql, 'utf8')
+  filesystem.writeFileSync(
+    path.join(queriesDir, 'index.js'),
+    `const path = require('path')\n\n` + //
+      `exports.queriesPath = path.join(__dirname, 'create-git-functions.sql')\n`,
+    'utf8',
+  )
+  filesystem.writeFileSync(
+    path.join(queriesDir, 'index.d.ts'),
+    `export const queriesPath: string\n`, //
+    'utf8',
+  )
 }
 
 if (require.main === module) write()
