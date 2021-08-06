@@ -55,6 +55,7 @@ expect.addSnapshotSerializer({
 })
 
 test('walkthrough', async () => {
+  throw 'hhhh'
   // ### Tracking history
 
   // `git_track` is a trigger function that can be added to any table, with a `json` column, default-named `git`:
@@ -322,6 +323,51 @@ test('walkthrough', async () => {
             {
               "field": "text",
               "new": "original value set by alice"
+            }
+          ]
+        }
+      ]
+    }
+  `)
+
+  // #### Git config
+
+  // You can configure git using `set_config`:
+
+  result = await client.transaction(async transaction => {
+    await transaction.query(sql`
+      select set_config('git.user.name', 'Bob', false);
+      select set_config('git.user.email', 'bobby@company.com', false);
+  
+      insert into test_table(id, text)
+      values(201, 'value set by bob')
+    `)
+
+    console.log(await transaction.any(sql`select current_setting('git.user.name')`))
+
+    return transaction.one(sql`
+      select git_log(git)
+      from test_table
+      where id = 201
+    `)
+  })
+
+  expect(result).toMatchInlineSnapshot(`
+    {
+      "git_log": [
+        {
+          "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+          "author": "pguser (pguser@pg.com)",
+          "timestamp": "2000-12-25T12:00:00.000Z",
+          "oid": "[oid]",
+          "changes": [
+            {
+              "field": "id",
+              "new": 201
+            },
+            {
+              "field": "text",
+              "new": "value set by bob"
             }
           ]
         }
