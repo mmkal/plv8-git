@@ -91,13 +91,21 @@ export const write = (filesystem = fs) => {
   filesystem.writeFileSync(path.join(queriesDir, 'create-git-functions.sql'), sql, 'utf8')
   filesystem.writeFileSync(
     path.join(queriesDir, 'index.js'),
-    `const path = require('path')\n\n` + //
-      `exports.queriesPath = path.join(__dirname, 'create-git-functions.sql')\n`,
+    `const path = require('path')\n` + //
+      `const fs = require('fs')\n\n` +
+      `exports.gitFunctionsPath = path.join(__dirname, 'create-git-functions.sql')\n\n` +
+      `exports.getGitFunctionsSql = () => fs.readFileSync(exports.createGitFunctionsPath, 'utf8')\n\n` +
+      `exports.getGitFunctionsSqlAsync = () => fs.promises.readFile(exports.createGitFunctionsPath, 'utf8')\n`,
     'utf8',
   )
   filesystem.writeFileSync(
     path.join(queriesDir, 'index.d.ts'),
-    `export const queriesPath: string\n`, //
+    `/** Path on filesystem to file containing git tracking SQL functions */\n` + //
+      `export const gitFunctionsPath: string\n\n` +
+      `/** Synchronously read the file system to return git tracking SQL functions as a string */\n` +
+      `export const getGitFunctionsSql: () => string\n\n` +
+      `/** Asynchronously read the file system to return git tracking SQL functions as a string */\n` +
+      `export const getGitFunctionsSqlAsync: () => Promise<string>\n`,
     'utf8',
   )
 }
