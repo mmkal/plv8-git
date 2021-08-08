@@ -39,7 +39,7 @@
     "docker-exec": "docker exec plv8-git_postgres_1",
     "eslint": "eslint --max-warnings 0",
     "generate": "yarn tsn scripts/generate-queries",
-    "lint": "yarn eslint . && tsc -p .",
+    "lint": "tsc -p . && yarn eslint . ",
     "prepare": "patch-package",
     "psql": "yarn --silent docker-exec psql -h localhost -U postgres postgres",
     "test": "jest",

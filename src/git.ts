@@ -6,6 +6,9 @@ import {PG_Vars} from './pg-types'
 import {setupMemfs} from './fs'
 
 function writeGitFiles(gitFiles: any, fs: memfs.IFs) {
+  if (!gitFiles) {
+    throw new Error(`Expected gitFiles as object, got ${gitFiles}`)
+  }
   Object.keys(gitFiles).map(filepath => {
     fs.mkdirSync(path.dirname(filepath), {recursive: true})
     fs.writeFileSync(filepath, Buffer.from(gitFiles[filepath]))
@@ -25,8 +28,20 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
     throw new Error(`Invalid column name ${repoColumn}`)
   }
 
-  const setupGitFolder =
-    pg.TG_OP === 'INSERT' ? () => git.init({...repo, defaultBranch: 'main'}) : () => writeGitFiles(OLD![repoColumn], fs)
+  const setupGitFolder = () => {
+    if (pg.TG_OP === 'INSERT') {
+      return git.init({...repo, defaultBranch: 'main'})
+    }
+
+    if (!OLD![repoColumn]) {
+      throw new Error(`expected ${repoColumn} column on ${pg.TG_OP} old value: ${JSON.stringify(OLD, null, 2)}.`)
+    }
+
+    return writeGitFiles(OLD![repoColumn], fs)
+  }
+  // const setupGitFolder =pg.TG_OP === 'INSERT' ? () => git.init({...repo, defaultBranch: 'main'}) : () => writeGitFiles2(OLD![repoColumn], fs)
+
+  const gitParams = NEW?.[repoColumn] || {}
 
   const commitMessage = `${pg.TG_NAME}: ${pg.TG_WHEN} ${pg.TG_OP} ${pg.TG_LEVEL} on ${pg.TG_TABLE_SCHEMA}.${pg.TG_TABLE_NAME}`.trim()
 
@@ -46,13 +61,16 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
         .then(() =>
           git.commit({
             ...repo,
-            message: [NEW?.[repoColumn]?.commit?.message, commitMessage].filter(Boolean).join('\n\n'),
-            author: {name: 'pguser', email: 'pguser@pg.com', ...NEW?.[repoColumn]?.commit?.author},
+            message: [gitParams.commit?.message, commitMessage].filter(Boolean).join('\n\n'),
+            author: {
+              name: gitParams.commit?.author?.name || getSetting('git.user.name') || 'pguser',
+              email: gitParams.commit?.author?.email || getSetting('git.user.email') || 'pguser@pg.com',
+            },
           }),
         )
         .then(commit =>
           Promise.all(
-            (NEW?.git?.tags || []).map((tag: string) => {
+            (gitParams.tags || []).map((tag: string) => {
               return git.tag({...repo, ref: tag, object: commit})
             }),
           ),
@@ -73,6 +91,15 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
       ...NEW,
       [repoColumn]: repo,
     }))
+}
+
+declare const plv8: {
+  execute(sql: string, args?: unknown[]): Record<string, unknown>[]
+}
+const getSetting = (name: string) => {
+  // https://www.postgresql.org/docs/9.4/functions-admin.html
+  const [{current_setting}] = plv8.execute('select current_setting($1, $2)', [name, /* missing_ok */ true])
+  return current_setting
 }
 
 type TreeInfo = {type: string; content: string; oid: string}

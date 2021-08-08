@@ -11,6 +11,7 @@ The implementation uses [plv8](https://github.com/plv8/plv8) to run JavaScript i
    - [Deletions](#deletions)
    - [Options](#options)
       - [Commit messages](#commit-messages)
+      - [Git config](#git-config)
       - [Log depth](#log-depth)
       - [Tags](#tags)
    - [Restoring previous versions](#restoring-previous-versions)
@@ -33,9 +34,7 @@ To paraphrase [@mayfer's twitter thread](https://twitter.com/mayfer/status/13086
 - with just 1 extra column, you 
 can add multiuser versioning to *any* indexed column!
 
-- how cool this will be for large JSON or other text blob columns that get overwritten a lot during the app's lifetime
-
-- since all commits are controlled by the main app, it's trivial to integrate commit authors directly into any regular application's user auth system
+- how cool this will be for large JSON or other text blob c get overwritten a lot duringall commits are controlled by the main app, it's trivial to integrate commit authors directly into any regular application's user auth system
 
 - due to the git standard, this repo then can easily be fed into any generic git UI for all sorts of diffing, logging & visualizing
 
@@ -48,16 +47,12 @@ npm install plv8-git
 
 psql -c "
   create extension if not exists plv8;
-  select plv8_version();
-"
-
-psql -f node_modules/plv8-git/queries/create-git-functions.sql
-```
-
-Or from javascript:
-
-```js
-const sqlClient = getSqlClient()
+  select plv8_version();"
+sl- oemdles/plv8-git/queries/create-gi-ucin.q
+`
+O rmjvsrp:
+`j
+os qClient = getSqlClient()
 
 const sql = require('plv8-git/queries').getGitFunctionsSql()
 await sqlClient.runRawSql(sql)
@@ -335,6 +330,47 @@ where id = 2
         {
           "field": "text",
           "new": "original value set by alice"
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### Git config
+
+You can configure git using `set_config`:
+
+```sql
+select set_config('git.user.name', 'Bob', true);
+select set_config('git.user.email', 'bobby@company.com', true);
+
+insert into test_table(id, text)
+values(201, 'value set by bob')
+```
+
+```sql
+select git_log(git)
+from test_table
+where id = 201
+```
+
+```json
+{
+  "git_log": [
+    {
+      "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+      "author": "Bob (bobby@company.com)",
+      "timestamp": "2000-12-25T12:00:00.000Z",
+      "oid": "[oid]",
+      "changes": [
+        {
+          "field": "id",
+          "new": 201
+        },
+        {
+          "field": "text",
+          "new": "value set by bob"
         }
       ]
     }

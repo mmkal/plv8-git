@@ -1,7 +1,6 @@
 import {createPool, sql} from 'slonik'
 import {readFileSync} from 'fs'
 import * as path from 'path'
-import {createHash} from 'crypto'
 import {fuzzifyDate, readableJson} from './result-printer'
 
 // NOTE! This file is used to auto-generate the readme.
@@ -55,7 +54,6 @@ expect.addSnapshotSerializer({
 })
 
 test('walkthrough', async () => {
-  throw 'hhhh'
   // ### Tracking history
 
   // `git_track` is a trigger function that can be added to any table, with a `json` column, default-named `git`:
@@ -336,14 +334,12 @@ test('walkthrough', async () => {
 
   result = await client.transaction(async transaction => {
     await transaction.query(sql`
-      select set_config('git.user.name', 'Bob', false);
-      select set_config('git.user.email', 'bobby@company.com', false);
-  
+      select set_config('git.user.name', 'Bob', true);
+      select set_config('git.user.email', 'bobby@company.com', true);
+
       insert into test_table(id, text)
       values(201, 'value set by bob')
     `)
-
-    console.log(await transaction.any(sql`select current_setting('git.user.name')`))
 
     return transaction.one(sql`
       select git_log(git)
@@ -357,7 +353,7 @@ test('walkthrough', async () => {
       "git_log": [
         {
           "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
-          "author": "pguser (pguser@pg.com)",
+          "author": "Bob (bobby@company.com)",
           "timestamp": "2000-12-25T12:00:00.000Z",
           "oid": "[oid]",
           "changes": [
