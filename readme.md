@@ -47,12 +47,15 @@ npm install plv8-git
 
 psql -c "
   create extension if not exists plv8;
-  select plv8_version();"
-sl- oemdles/plv8-git/queries/create-gi-ucin.q
-`
-O rmjvsrp:
-`j
-os qClient = getSqlClient()
+  select plv8_version();
+"
+psql -f node_modules/plv8-git/queries/create-git-functions.sql
+```
+
+Or from javascript:
+
+```js
+const sqlClient = getSqlClient()
 
 const sql = require('plv8-git/queries').getGitFunctionsSql()
 await sqlClient.runRawSql(sql)
@@ -339,11 +342,11 @@ where id = 2
 
 #### Git config
 
-You can configure git using `set_config`:
+You can configure git using `git_set_local_config` or `git_set_global_config`:
 
 ```sql
-select set_config('git.user.name', 'Bob', true);
-select set_config('git.user.email', 'bobby@company.com', true);
+select git_set_local_config('user.name', 'Bob');
+select git_set_local_config('user.email', 'bobby@company.com');
 
 insert into test_table(id, text)
 values(201, 'value set by bob')
@@ -377,6 +380,8 @@ where id = 201
   ]
 }
 ```
+
+Under the hood these use `set_config` with the `is_local` parameter respectively true/false for the local/global variants.
 
 #### Log depth
 
