@@ -78,6 +78,18 @@ export const getQuery = (js: string) => {
 
     $$
     language plpgsql;
+
+    create or replace function set_git_config(name text, value text, is_local boolean) returns text as
+    $$
+      select set_config('git.' || name, value, false);
+    $$
+    language sql;
+
+    create or replace function get_git_config(name text) returns text as
+    $$
+      select current_setting('git.' || name, /* missing_ok */ true);
+    $$
+    language sql;
   `
 }
 
