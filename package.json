@@ -47,7 +47,8 @@
     "webpack": "webpack"
   },
   "dependencies": {
-    "@rushstack/ts-command-line": "^4.7.3"
+    "@rushstack/ts-command-line": "^4.7.3",
+    "purify-ts": "^1.0.0"
   },
   "devDependencies": {
     "@babel/core": "7.13.8",
