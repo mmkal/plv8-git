@@ -33,6 +33,14 @@ beforeAll(async () => {
     drop function if exists git_log cascade;
     drop function if exists git_resolve cascade;
     drop function if exists git_call_sync cascade;
+    drop function if exists git_set_config cascade;
+    drop function if exists git_set_local_config cascade;
+    drop function if exists git_set_global_config cascade;
+    drop function if exists git_get_config cascade;
+    drop function if exists set_local_git_config;
+    drop function if exists set_global_git_config;
+    drop function if exists get_git_config;
+    drop function if exists git_get_config;
   `)
 
   await client.query({
@@ -330,12 +338,12 @@ test('walkthrough', async () => {
 
   // #### Git config
 
-  // You can configure git using `set_config`:
+  // You can configure git using `git_set_local_config` or `git_set_global_config`:
 
   result = await client.transaction(async transaction => {
     await transaction.query(sql`
-      select set_config('git.user.name', 'Bob', true);
-      select set_config('git.user.email', 'bobby@company.com', true);
+      select git_set_local_config('user.name', 'Bob');
+      select git_set_local_config('user.email', 'bobby@company.com');
 
       insert into test_table(id, text)
       values(201, 'value set by bob')
@@ -370,6 +378,8 @@ test('walkthrough', async () => {
       ]
     }
   `)
+
+  // Under the hood these use `set_config` with the `is_local` parameter respectively true/false for the local/global variants.
 
   // #### Log depth
 

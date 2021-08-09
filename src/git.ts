@@ -63,8 +63,8 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
             ...repo,
             message: [gitParams.commit?.message, commitMessage].filter(Boolean).join('\n\n'),
             author: {
-              name: gitParams.commit?.author?.name || getSetting('git.user.name') || 'pguser',
-              email: gitParams.commit?.author?.email || getSetting('git.user.email') || 'pguser@pg.com',
+              name: gitParams.commit?.author?.name || getSetting('user.name') || 'pguser',
+              email: gitParams.commit?.author?.email || getSetting('user.email') || 'pguser@pg.com',
             },
           }),
         )
@@ -98,8 +98,8 @@ declare const plv8: {
 }
 const getSetting = (name: string) => {
   // https://www.postgresql.org/docs/9.4/functions-admin.html
-  const [{current_setting}] = plv8.execute('select current_setting($1, $2)', [name, /* missing_ok */ true])
-  return current_setting
+  const [{git_get_config}] = plv8.execute('select git_get_config($1)', [name])
+  return git_get_config
 }
 
 type TreeInfo = {type: string; content: string; oid: string}
