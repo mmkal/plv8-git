@@ -13,7 +13,7 @@ module.exports = params => {
   }
   const end = lines.findIndex((line, i) => i > start && line.startsWith('})'))
 
-  const codeBlockLinePrefix = 'CODE_BLOCK_LINE:'
+  let codeBlockLinePrefix = 'CODE_BLOCK_LINE:'
 
   return lines
     .slice(start, end)
@@ -32,6 +32,14 @@ module.exports = params => {
     .split('\n')
     .filter(line => !line.startsWith('// todo') && !line.startsWith('// TODO'))
     .map((line, i) => {
+      if (line.endsWith('=> {')) {
+        codeBlockLinePrefix += '  '
+        return null
+      }
+      if (line.endsWith('})')) {
+        codeBlockLinePrefix = codeBlockLinePrefix.replace(/  $/, '')
+        return null
+      }
       if (line.includes('sql`')) return '```sql'
       if (line.includes('.toMatchInlineSnapshot(`')) return '```json'
       if (line.trim().endsWith('`)')) return '```'
@@ -51,5 +59,6 @@ module.exports = params => {
       }
       return line
     })
+    .filter(line => line !== null)
     .join('\n')
 }

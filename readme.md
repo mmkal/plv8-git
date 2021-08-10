@@ -11,6 +11,7 @@ The implementation uses [plv8](https://github.com/plv8/plv8) to run JavaScript i
    - [Deletions](#deletions)
    - [Options](#options)
       - [Commit messages](#commit-messages)
+      - [Git config](#git-config)
       - [Log depth](#log-depth)
       - [Tags](#tags)
    - [Restoring previous versions](#restoring-previous-versions)
@@ -33,9 +34,7 @@ To paraphrase [@mayfer's twitter thread](https://twitter.com/mayfer/status/13086
 - with just 1 extra column, you 
 can add multiuser versioning to *any* indexed column!
 
-- how cool this will be for large JSON or other text blob columns that get overwritten a lot during the app's lifetime
-
-- since all commits are controlled by the main app, it's trivial to integrate commit authors directly into any regular application's user auth system
+- how cool this will be for large JSON or other text blob c get overwritten a lot duringall commits are controlled by the main app, it's trivial to integrate commit authors directly into any regular application's user auth system
 
 - due to the git standard, this repo then can easily be fed into any generic git UI for all sorts of diffing, logging & visualizing
 
@@ -50,7 +49,6 @@ psql -c "
   create extension if not exists plv8;
   select plv8_version();
 "
-
 psql -f node_modules/plv8-git/queries/create-git-functions.sql
 ```
 
@@ -341,6 +339,49 @@ where id = 2
   ]
 }
 ```
+
+#### Git config
+
+You can configure git using `git_set_local_config` or `git_set_global_config`:
+
+```sql
+select git_set_local_config('user.name', 'Bob');
+select git_set_local_config('user.email', 'bobby@company.com');
+
+insert into test_table(id, text)
+values(201, 'value set by bob')
+```
+
+```sql
+select git_log(git)
+from test_table
+where id = 201
+```
+
+```json
+{
+  "git_log": [
+    {
+      "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+      "author": "Bob (bobby@company.com)",
+      "timestamp": "2000-12-25T12:00:00.000Z",
+      "oid": "[oid]",
+      "changes": [
+        {
+          "field": "id",
+          "new": 201
+        },
+        {
+          "field": "text",
+          "new": "value set by bob"
+        }
+      ]
+    }
+  ]
+}
+```
+
+Under the hood these use `set_config` with the `is_local` parameter respectively true/false for the local/global variants.
 
 #### Log depth
 

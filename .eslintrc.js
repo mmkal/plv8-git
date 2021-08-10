@@ -20,4 +20,12 @@ module.exports = {
     'prettier/prettier': ['warn', require('./.prettierrc')],
     'codegen/codegen': 'error',
   },
+  overrides: [
+    {
+      files: ['**/*.md'],
+      rules: {
+        'prettier/prettier': 'off',
+      },
+    },
+  ],
 }

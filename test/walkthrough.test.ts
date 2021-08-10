@@ -1,7 +1,6 @@
 import {createPool, sql} from 'slonik'
 import {readFileSync} from 'fs'
 import * as path from 'path'
-import {createHash} from 'crypto'
 import {fuzzifyDate, readableJson} from './result-printer'
 
 // NOTE! This file is used to auto-generate the readme.
@@ -34,6 +33,14 @@ beforeAll(async () => {
     drop function if exists git_log cascade;
     drop function if exists git_resolve cascade;
     drop function if exists git_call_sync cascade;
+    drop function if exists git_set_config cascade;
+    drop function if exists git_set_local_config cascade;
+    drop function if exists git_set_global_config cascade;
+    drop function if exists git_get_config cascade;
+    drop function if exists set_local_git_config;
+    drop function if exists set_global_git_config;
+    drop function if exists get_git_config;
+    drop function if exists git_get_config;
   `)
 
   await client.query({
@@ -328,6 +335,51 @@ test('walkthrough', async () => {
       ]
     }
   `)
+
+  // #### Git config
+
+  // You can configure git using `git_set_local_config` or `git_set_global_config`:
+
+  result = await client.transaction(async transaction => {
+    await transaction.query(sql`
+      select git_set_local_config('user.name', 'Bob');
+      select git_set_local_config('user.email', 'bobby@company.com');
+
+      insert into test_table(id, text)
+      values(201, 'value set by bob')
+    `)
+
+    return transaction.one(sql`
+      select git_log(git)
+      from test_table
+      where id = 201
+    `)
+  })
+
+  expect(result).toMatchInlineSnapshot(`
+    {
+      "git_log": [
+        {
+          "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+          "author": "Bob (bobby@company.com)",
+          "timestamp": "2000-12-25T12:00:00.000Z",
+          "oid": "[oid]",
+          "changes": [
+            {
+              "field": "id",
+              "new": 201
+            },
+            {
+              "field": "text",
+              "new": "value set by bob"
+            }
+          ]
+        }
+      ]
+    }
+  `)
+
+  // Under the hood these use `set_config` with the `is_local` parameter respectively true/false for the local/global variants.
 
   // #### Log depth
 
