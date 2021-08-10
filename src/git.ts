@@ -39,7 +39,6 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
 
     return writeGitFiles(OLD![repoColumn], fs)
   }
-  // const setupGitFolder =pg.TG_OP === 'INSERT' ? () => git.init({...repo, defaultBranch: 'main'}) : () => writeGitFiles2(OLD![repoColumn], fs)
 
   const gitParams = NEW?.[repoColumn] || {}
 
