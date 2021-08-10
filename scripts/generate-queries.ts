@@ -110,8 +110,8 @@ export const write = (filesystem = fs) => {
     `const path = require('path')\n` + //
       `const fs = require('fs')\n\n` +
       `exports.gitFunctionsPath = path.join(__dirname, 'create-git-functions.sql')\n\n` +
-      `exports.getGitFunctionsSql = () => fs.readFileSync(exports.createGitFunctionsPath, 'utf8')\n\n` +
-      `exports.getGitFunctionsSqlAsync = () => fs.promises.readFile(exports.createGitFunctionsPath, 'utf8')\n`,
+      `exports.getGitFunctionsSql = () => fs.readFileSync(exports.gitFunctionsPath, 'utf8')\n\n` +
+      `exports.getGitFunctionsSqlAsync = () => fs.promises.readFile(exports.gitFunctionsPath, 'utf8')\n`,
     'utf8',
   )
   filesystem.writeFileSync(
