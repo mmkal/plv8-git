@@ -67,13 +67,14 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
             },
           }),
         )
-        .then(commit =>
-          Promise.all(
-            (gitParams.tags || []).map((tag: string) => {
+        .then(commit => {
+          const allTags: string[] = [...(getSetting('git.tags')?.split(':') || []), ...(gitParams.tags || [])]
+          return Promise.all(
+            allTags.map((tag: string) => {
               return git.tag({...repo, ref: tag, object: commit})
             }),
-          ),
-        )
+          )
+        })
     })
     .then(() => {
       const files: Record<string, number[]> = {}
@@ -98,7 +99,7 @@ declare const plv8: {
 const getSetting = (name: string) => {
   // https://www.postgresql.org/docs/9.4/functions-admin.html
   const [{git_get_config}] = plv8.execute('select git_get_config($1)', [name])
-  return git_get_config
+  return git_get_config as string | null
 }
 
 type TreeInfo = {type: string; content: string; oid: string}
