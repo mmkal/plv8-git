@@ -68,7 +68,10 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
           }),
         )
         .then(commit => {
-          const allTags: string[] = [...(getSetting('git.tags')?.split(':') || []), ...(gitParams.tags || [])]
+          const allTags: string[] = [
+            ...(getSetting('tags')?.split(':') || []), // colon separated tags from config
+            ...(gitParams.tags || []),
+          ]
           return Promise.all(
             allTags.map((tag: string) => {
               return git.tag({...repo, ref: tag, object: commit})
