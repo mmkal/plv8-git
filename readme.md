@@ -112,6 +112,7 @@ This query will return:
       "author": "pguser (pguser@pg.com)",
       "timestamp": "2000-12-25T12:00:00.000Z",
       "oid": "[oid]",
+      "tags": [],
       "changes": [
         {
           "field": "text",
@@ -125,6 +126,7 @@ This query will return:
       "author": "pguser (pguser@pg.com)",
       "timestamp": "2000-12-25T12:00:00.000Z",
       "oid": "[oid]",
+      "tags": [],
       "changes": [
         {
           "field": "id",
@@ -262,6 +264,7 @@ where identifier->>'id' = '1'
       "author": "pguser (pguser@pg.com)",
       "timestamp": "2000-12-25T12:00:00.000Z",
       "oid": "[oid]",
+      "tags": [],
       "changes": [
         {
           "field": "text",
@@ -275,6 +278,7 @@ where identifier->>'id' = '1'
       "author": "pguser (pguser@pg.com)",
       "timestamp": "2000-12-25T12:00:00.000Z",
       "oid": "[oid]",
+      "tags": [],
       "changes": [
         {
           "field": "id",
@@ -325,6 +329,7 @@ where id = 2
       "author": "Alice (alice@gmail.com)",
       "timestamp": "2000-12-25T12:00:00.000Z",
       "oid": "[oid]",
+      "tags": [],
       "changes": [
         {
           "field": "id",
@@ -366,6 +371,7 @@ where id = 201
       "author": "Bob (bobby@company.com)",
       "timestamp": "2000-12-25T12:00:00.000Z",
       "oid": "[oid]",
+      "tags": [],
       "changes": [
         {
           "field": "id",
@@ -408,6 +414,7 @@ where id = 2
       "author": "pguser (pguser@pg.com)",
       "timestamp": "2000-12-25T12:00:00.000Z",
       "oid": "[oid]",
+      "tags": [],
       "changes": [
         {
           "field": "text",
@@ -440,6 +447,16 @@ update test_table
 set
   text = 'item 3 new year value',
   git = '{ "tags": ["2001-01-01", "2001-01", "2001"] }'
+where id = 3;
+```
+
+Or, set them in git config as a colon-separated list:
+
+```sql
+select git_set_local_config('tags', 'your_app_request_id=1234:your_app_trace_id=5678');
+
+update test_table
+set text = 'item 3 yet another value'
 where id = 3;
 ```
 
@@ -508,6 +525,26 @@ returning id, text
 }
 ```
 
+```sql
+update test_table set (id, text) =
+(
+  select id, text
+  from json_populate_record(
+    null::test_table,
+    git_resolve(git, ref := 'your_app_request_id=1234')
+  )
+)
+where id = 3
+returning id, text
+```
+
+```json
+{
+  "id": 3,
+  "text": "item 3 yet another value"
+}
+```
+
 A similar technique can restore a deleted item:
 
 ```sql
@@ -571,6 +608,7 @@ where git = 'https://github.com/mmkal/plv8-git.git'
       "author": "pguser (pguser@pg.com)",
       "timestamp": "2000-12-25T12:00:00.000Z",
       "oid": "[oid]",
+      "tags": [],
       "changes": [
         {
           "field": "git",

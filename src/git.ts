@@ -42,7 +42,7 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
 
   const gitParams = NEW?.[repoColumn] || {}
 
-  const commitMessage = `${pg.TG_NAME}: ${pg.TG_WHEN} ${pg.TG_OP} ${pg.TG_LEVEL} on ${pg.TG_TABLE_SCHEMA}.${pg.TG_TABLE_NAME}`.trim()
+  const defaultCommitMessage = `${pg.TG_NAME}: ${pg.TG_WHEN} ${pg.TG_OP} ${pg.TG_LEVEL} on ${pg.TG_TABLE_SCHEMA}.${pg.TG_TABLE_NAME}`.trim()
 
   return Promise.resolve()
     .then(setupGitFolder)
@@ -60,7 +60,14 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
         .then(() =>
           git.commit({
             ...repo,
-            message: [gitParams.commit?.message, commitMessage].filter(Boolean).join('\n\n'),
+            message: [
+              gitParams.commit?.message,
+              getSetting('commit.message'),
+              defaultCommitMessage,
+              getSetting('commit.message.signature'),
+            ]
+              .filter(Boolean)
+              .join('\n\n'),
             author: {
               name: gitParams.commit?.author?.name || getSetting('user.name') || 'pguser',
               email: gitParams.commit?.author?.email || getSetting('user.email') || 'pguser@pg.com',
@@ -69,7 +76,7 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
         )
         .then(commit => {
           const allTags: string[] = [
-            ...(getSetting('tags.tags')?.split(':') || []), // colon separated tags from config
+            ...(getSetting('tags')?.split(':') || []), // colon separated tags from config
             ...(gitParams.tags || []),
           ].filter(Boolean)
           return Promise.all(

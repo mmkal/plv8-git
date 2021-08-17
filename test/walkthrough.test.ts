@@ -452,21 +452,13 @@ test('walkthrough', async () => {
 
   await client.transaction(async transaction => {
     await transaction.query(sql`
-      select git_set_local_config('tags.tags', 'customtags');
+      select git_set_local_config('tags', 'your_app_request_id=1234:your_app_trace_id=5678');
 
       update test_table
       set text = 'item 3 yet another value'
       where id = 3;
     `)
   })
-
-  expect(await client.any(sql`select git_get_config('tags')`)).toMatchInlineSnapshot(`
-    [
-      {
-        "git_get_config": null
-      }
-    ]
-  `)
 
   // ### Restoring previous versions
 
@@ -539,7 +531,7 @@ test('walkthrough', async () => {
       select id, text
       from json_populate_record(
         null::test_table,
-        git_resolve(git, ref := 'customtags')
+        git_resolve(git, ref := 'your_app_request_id=1234')
       )
     )
     where id = 3
