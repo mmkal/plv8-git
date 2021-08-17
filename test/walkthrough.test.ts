@@ -108,6 +108,7 @@ test('walkthrough', async () => {
           "author": "pguser (pguser@pg.com)",
           "timestamp": "2000-12-25T12:00:00.000Z",
           "oid": "[oid]",
+          "tags": [],
           "changes": [
             {
               "field": "text",
@@ -121,6 +122,7 @@ test('walkthrough', async () => {
           "author": "pguser (pguser@pg.com)",
           "timestamp": "2000-12-25T12:00:00.000Z",
           "oid": "[oid]",
+          "tags": [],
           "changes": [
             {
               "field": "id",
@@ -258,6 +260,7 @@ test('walkthrough', async () => {
           "author": "pguser (pguser@pg.com)",
           "timestamp": "2000-12-25T12:00:00.000Z",
           "oid": "[oid]",
+          "tags": [],
           "changes": [
             {
               "field": "text",
@@ -271,6 +274,7 @@ test('walkthrough', async () => {
           "author": "pguser (pguser@pg.com)",
           "timestamp": "2000-12-25T12:00:00.000Z",
           "oid": "[oid]",
+          "tags": [],
           "changes": [
             {
               "field": "id",
@@ -321,6 +325,7 @@ test('walkthrough', async () => {
           "author": "Alice (alice@gmail.com)",
           "timestamp": "2000-12-25T12:00:00.000Z",
           "oid": "[oid]",
+          "tags": [],
           "changes": [
             {
               "field": "id",
@@ -364,6 +369,7 @@ test('walkthrough', async () => {
           "author": "Bob (bobby@company.com)",
           "timestamp": "2000-12-25T12:00:00.000Z",
           "oid": "[oid]",
+          "tags": [],
           "changes": [
             {
               "field": "id",
@@ -406,6 +412,7 @@ test('walkthrough', async () => {
           "author": "pguser (pguser@pg.com)",
           "timestamp": "2000-12-25T12:00:00.000Z",
           "oid": "[oid]",
+          "tags": [],
           "changes": [
             {
               "field": "text",
@@ -439,6 +446,26 @@ test('walkthrough', async () => {
       text = 'item 3 new year value',
       git = '{ "tags": ["2001-01-01", "2001-01", "2001"] }'
     where id = 3;
+  `)
+
+  // Or, set them in git config as a colon-separated list:
+
+  await client.transaction(async transaction => {
+    await transaction.query(sql`
+      select git_set_local_config('tags.tags', 'customtags');
+
+      update test_table
+      set text = 'item 3 yet another value'
+      where id = 3;
+    `)
+  })
+
+  expect(await client.any(sql`select git_get_config('tags')`)).toMatchInlineSnapshot(`
+    [
+      {
+        "git_get_config": null
+      }
+    ]
   `)
 
   // ### Restoring previous versions
@@ -506,6 +533,26 @@ test('walkthrough', async () => {
     }
   `)
 
+  result = await client.one(sql`
+    update test_table set (id, text) =
+    (
+      select id, text
+      from json_populate_record(
+        null::test_table,
+        git_resolve(git, ref := 'customtags')
+      )
+    )
+    where id = 3
+    returning id, text
+  `)
+
+  expect(result).toMatchInlineSnapshot(`
+    {
+      "id": 3,
+      "text": "item 3 yet another value"
+    }
+  `)
+
   // A similar technique can restore a deleted item:
 
   result = await client.one(sql`
@@ -569,6 +616,7 @@ test('walkthrough', async () => {
           "author": "pguser (pguser@pg.com)",
           "timestamp": "2000-12-25T12:00:00.000Z",
           "oid": "[oid]",
+          "tags": [],
           "changes": [
             {
               "field": "git",

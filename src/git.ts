@@ -69,9 +69,9 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
         )
         .then(commit => {
           const allTags: string[] = [
-            ...(getSetting('tags')?.split(':') || []), // colon separated tags from config
+            ...(getSetting('tags.tags')?.split(':') || []), // colon separated tags from config
             ...(gitParams.tags || []),
-          ]
+          ].filter(Boolean)
           return Promise.all(
             allTags.map((tag: string) => {
               return git.tag({...repo, ref: tag, object: commit})
@@ -134,11 +134,17 @@ export const gitLog = (gitRepoJson: object, depth?: number) => {
                 )
               },
             })
-            .then((results: WalkResult[]) => ({
+            .then((results: WalkResult[]) => {
+              return git.listTags({...repo}).then(tags => {
+                return {results, tags}
+              })
+            })
+            .then(({results, tags}) => ({
               message: e.commit.message.trim(),
               author: `${e.commit.author.name} (${e.commit.author.email})`,
               timestamp: new Date(e.commit.author.timestamp * 1000).toISOString(),
               oid: e.oid,
+              tags,
               changes: results
                 .filter(
                   r => r.ChildInfo?.type === 'blob' && r.filepath !== '.' && r.ChildInfo.oid !== r.ParentInfo?.oid,
