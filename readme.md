@@ -506,6 +506,91 @@ returning id, text
 If you used `tags` as described above, you can take advantage of them to restore to a known-good state easily:
 
 ```sql
+select git_log(git)
+from test_table
+where id = 3
+```
+
+```json
+[
+  {
+    "git_log": [
+      {
+        "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
+        "author": "pguser (pguser@pg.com)",
+        "timestamp": "2000-12-25T12:00:00.000Z",
+        "oid": "[oid]",
+        "tags": [
+          "your_app_request_id=1234",
+          "your_app_trace_id=5678"
+        ],
+        "changes": [
+          {
+            "field": "text",
+            "new": "item 3 yet another value",
+            "old": "item 3 new year value"
+          }
+        ]
+      },
+      {
+        "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
+        "author": "pguser (pguser@pg.com)",
+        "timestamp": "2000-12-25T12:00:00.000Z",
+        "oid": "[oid]",
+        "tags": [
+          "2001",
+          "2001-01",
+          "2001-01-01"
+        ],
+        "changes": [
+          {
+            "field": "text",
+            "new": "item 3 new year value",
+            "old": "item 3 boxing day value"
+          }
+        ]
+      },
+      {
+        "message": "test_table_git_track_trigger: BEFORE UPDATE ROW on public.test_table",
+        "author": "pguser (pguser@pg.com)",
+        "timestamp": "2000-12-25T12:00:00.000Z",
+        "oid": "[oid]",
+        "tags": [
+          "2000",
+          "2000-12",
+          "2000-12-26"
+        ],
+        "changes": [
+          {
+            "field": "text",
+            "new": "item 3 boxing day value",
+            "old": "item 3 xmas day value"
+          }
+        ]
+      },
+      {
+        "message": "test_table_git_track_trigger: BEFORE INSERT ROW on public.test_table",
+        "author": "pguser (pguser@pg.com)",
+        "timestamp": "2000-12-25T12:00:00.000Z",
+        "oid": "[oid]",
+        "tags": [],
+        "changes": [
+          {
+            "field": "id",
+            "new": 3
+          },
+          {
+            "field": "text",
+            "new": "item 3 xmas day value"
+          }
+        ]
+      }
+    ]
+  }
+]
+```
+
+```sql
 update test_table set (id, text) =
 (
   select id, text

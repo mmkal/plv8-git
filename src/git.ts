@@ -4,6 +4,7 @@ import * as git from 'isomorphic-git'
 import * as serializer from './serializer'
 import {PG_Vars} from './pg-types'
 import {setupMemfs} from './fs'
+import {memoizeAsync} from './memoize'
 
 function writeGitFiles(gitFiles: any, fs: memfs.IFs) {
   if (!gitFiles) {
@@ -124,6 +125,10 @@ export const gitLog = (gitRepoJson: object, depth?: number) => {
   const {fs} = setupMemfs()
   const repo = {fs, dir: '/repo'}
 
+  // `listTags` lists all tags for the repo. so we need to use resolveRef to check that each tags is pointing at a given id
+  // this can mean a lot of repeated calls.
+  const resolveTagRef = memoizeAsync(git.resolveRef)
+
   return Promise.resolve()
     .then(() => writeGitFiles(gitRepoJson, fs))
     .then(() => git.log({...repo, depth}))
@@ -143,7 +148,10 @@ export const gitLog = (gitRepoJson: object, depth?: number) => {
             })
             .then((results: WalkResult[]) => {
               return git.listTags({...repo}).then(tags => {
-                return {results, tags}
+                return Promise.all(tags.map(t => resolveTagRef({...repo, ref: t}))).then(resolvedTags => {
+                  const filteredTags = tags.filter((t, i) => resolvedTags[i] === e.oid)
+                  return {results, tags: filteredTags}
+                })
               })
             })
             .then(({results, tags}) => ({
