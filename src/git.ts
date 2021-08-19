@@ -4,6 +4,7 @@ import * as git from 'isomorphic-git'
 import * as serializer from './serializer'
 import {PG_Vars} from './pg-types'
 import {setupMemfs} from './fs'
+import {memoizeAsync} from './memoize'
 
 function writeGitFiles(gitFiles: any, fs: memfs.IFs) {
   if (!gitFiles) {
@@ -42,7 +43,7 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
 
   const gitParams = NEW?.[repoColumn] || {}
 
-  const commitMessage = `${pg.TG_NAME}: ${pg.TG_WHEN} ${pg.TG_OP} ${pg.TG_LEVEL} on ${pg.TG_TABLE_SCHEMA}.${pg.TG_TABLE_NAME}`.trim()
+  const defaultCommitMessage = `${pg.TG_NAME}: ${pg.TG_WHEN} ${pg.TG_OP} ${pg.TG_LEVEL} on ${pg.TG_TABLE_SCHEMA}.${pg.TG_TABLE_NAME}`.trim()
 
   return Promise.resolve()
     .then(setupGitFolder)
@@ -60,20 +61,31 @@ export const rowToRepo = ({OLD, NEW, ...pg}: PG_Vars) => {
         .then(() =>
           git.commit({
             ...repo,
-            message: [gitParams.commit?.message, commitMessage].filter(Boolean).join('\n\n'),
+            message: [
+              gitParams.commit?.message,
+              getSetting('commit.message'),
+              defaultCommitMessage,
+              getSetting('commit.message.signature'),
+            ]
+              .filter(Boolean)
+              .join('\n\n'),
             author: {
               name: gitParams.commit?.author?.name || getSetting('user.name') || 'pguser',
               email: gitParams.commit?.author?.email || getSetting('user.email') || 'pguser@pg.com',
             },
           }),
         )
-        .then(commit =>
-          Promise.all(
-            (gitParams.tags || []).map((tag: string) => {
+        .then(commit => {
+          const allTags: string[] = [
+            ...(getSetting('tags')?.split(':') || []), // colon separated tags from config
+            ...(gitParams.tags || []),
+          ].filter(Boolean)
+          return Promise.all(
+            allTags.map((tag: string) => {
               return git.tag({...repo, ref: tag, object: commit})
             }),
-          ),
-        )
+          )
+        })
     })
     .then(() => {
       const files: Record<string, number[]> = {}
@@ -98,7 +110,7 @@ declare const plv8: {
 const getSetting = (name: string) => {
   // https://www.postgresql.org/docs/9.4/functions-admin.html
   const [{git_get_config}] = plv8.execute('select git_get_config($1)', [name])
-  return git_get_config
+  return git_get_config as string | null
 }
 
 type TreeInfo = {type: string; content: string; oid: string}
@@ -112,6 +124,10 @@ type WalkResult = {filepath: string; ChildInfo: TreeInfo; ParentInfo?: TreeInfo}
 export const gitLog = (gitRepoJson: object, depth?: number) => {
   const {fs} = setupMemfs()
   const repo = {fs, dir: '/repo'}
+
+  // `listTags` lists all tags for the repo. so we need to use resolveRef to check that each tags is pointing at a given id
+  // this can mean a lot of repeated calls.
+  const resolveTagRef = memoizeAsync(git.resolveRef)
 
   return Promise.resolve()
     .then(() => writeGitFiles(gitRepoJson, fs))
@@ -130,11 +146,20 @@ export const gitLog = (gitRepoJson: object, depth?: number) => {
                 )
               },
             })
-            .then((results: WalkResult[]) => ({
+            .then((results: WalkResult[]) => {
+              return git.listTags({...repo}).then(tags => {
+                return Promise.all(tags.map(t => resolveTagRef({...repo, ref: t}))).then(resolvedTags => {
+                  const filteredTags = tags.filter((t, i) => resolvedTags[i] === e.oid)
+                  return {results, tags: filteredTags}
+                })
+              })
+            })
+            .then(({results, tags}) => ({
               message: e.commit.message.trim(),
               author: `${e.commit.author.name} (${e.commit.author.email})`,
               timestamp: new Date(e.commit.author.timestamp * 1000).toISOString(),
               oid: e.oid,
+              tags,
               changes: results
                 .filter(
                   r => r.ChildInfo?.type === 'blob' && r.filepath !== '.' && r.ChildInfo.oid !== r.ParentInfo?.oid,

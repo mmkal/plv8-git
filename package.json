@@ -33,6 +33,7 @@
     "predocker-apply": "yarn docker-copy-query",
     "docker-apply": "yarn psql -f /queries/create-git-functions.sql",
     "docker-bash": "docker-compose exec postgres bash",
+    "docker-logs": "docker-compose logs --follow --tail 100",
     "docker-psql": "docker-compose exec postgres psql -h localhost -U postgres postgres",
     "predocker-copy-query": "yarn docker-exec mkdir -p /queries",
     "docker-copy-query": "docker cp queries/create-git-functions.sql plv8-git_postgres_1:/queries",
